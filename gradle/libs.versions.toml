@@ -3,7 +3,7 @@ kotlin = "2.4.10"
 poet = "2.3.0"
 dokka = "2.2.0"
 publish = "0.37.0"
-detekt = "2.0.0-alpha.5"
+detekt = "2.0.0-alpha.6"
 kore = "1.2.0"
 
 [libraries]
