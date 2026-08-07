@@ -6,7 +6,7 @@ import java.time.Year
 
 plugins {
     alias(libs.plugins.kreate)
-    id("dev.detekt") version "2.0.0-alpha.5"
+    id("dev.detekt") version "2.0.0-alpha.6"
     kotlin("jvm") version "2.4.10"
 }
 
