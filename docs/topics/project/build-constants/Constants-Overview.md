@@ -1,5 +1,15 @@
 # Overview
 
+<link-summary>Generating a Kotlin object from build values.</link-summary>
+
+<card-summary>Embed build information into your code instead of reading it at runtime.</card-summary>
+
+<tldr>
+<p><b>Enable</b>: <code>project { buildConstant { enabled = true } }</code></p>
+<p><b>Task</b>: <code>kreateBuildConstants</code>, runs before compilation</p>
+<p><b>Output</b>: a Kotlin <code>object</code> on your compile classpath</p>
+</tldr>
+
 The Build Constants feature generates a Kotlin `object` at compile time that exposes
 key-value pairs as `const val` string properties. This allows you to embed information
 like the project version, name, or any custom value directly into your compiled code —
@@ -12,7 +22,7 @@ Build constants generation is **disabled by default**. Enable it inside the
 kreate {
     project {
         buildConstant {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -25,7 +35,7 @@ kreate {
 
 ## How It Works
 
-When enabled, Kreate registers a `kreate-build-constants` Gradle task that runs
+When enabled, Kreate registers a `kreateBuildConstants` Gradle task that runs
 automatically before compilation. The task uses [KotlinPoet](https://square.github.io/kotlinpoet/)
 to write a `.kt` source file into the build directory and wires it into the project's
 source sets so it is compiled alongside your regular code.
@@ -48,7 +58,7 @@ kreate {
         projectGroup = "com.example"
 
         buildConstant {
-            enabled.set(true)
+            enabled = true
             constant("version", project.version)
             constant("name", "MyLibrary")
         }
@@ -87,7 +97,10 @@ println(BuildConstants.NAME)
 >
 {style="tip"}
 
-## Next Steps
 
-- **[](Constans-Configuration.md)**: Customize package names, class names, and target source sets
-- **[](Constants-Examples.md)**: Advanced usage, including environment variables and dynamic values
+<seealso>
+    <category ref="project">
+        <a href="Constans-Configuration.md">Configuration</a>
+        <a href="Constants-Examples.md">Examples</a>
+    </category>
+</seealso>

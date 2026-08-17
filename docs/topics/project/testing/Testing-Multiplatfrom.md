@@ -1,5 +1,9 @@
 # Multiplatform Testing
 
+<link-summary>Testing across Kotlin Multiplatform targets.</link-summary>
+
+<card-summary>How the test configuration maps onto multiplatform targets.</card-summary>
+
 In Kotlin Multiplatform projects, Kreate configures two distinct categories of test tasks
 separately, because they are implemented by different Gradle task types with different APIs.
 
@@ -85,3 +89,9 @@ kotlin {
     }
 }
 ```
+
+<seealso>
+    <category ref="project">
+        <a href="Testing-Overview.md">Overview</a>
+    </category>
+</seealso>

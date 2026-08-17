@@ -1,5 +1,9 @@
 # Version Resolution
 
+<link-summary>How the project version is resolved, and in what order.</link-summary>
+
+<card-summary>CI tag, then Gradle property, then a logged fallback.</card-summary>
+
 The project version is **not** set directly inside `project { }`. Instead, Kreate resolves it
 automatically from an environment variable or a Gradle property, configured via the nested
 `version { }` block:
@@ -24,3 +28,13 @@ kreate {
 | Gradle project property | `version` (configurable) | 2nd (fallback) |
 
 This design makes the version injectable from CI/CD pipelines without modifying build files.
+
+<seealso>
+    <category ref="project">
+        <a href="Project-Metadata.md">Project metadata</a>
+        <a href="Publishing-Overview.md">Publishing</a>
+    </category>
+    <category ref="reference">
+        <a href="CI-Integration.md">CI integration</a>
+    </category>
+</seealso>

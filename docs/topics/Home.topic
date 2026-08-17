@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       id="Home"
+       title="Kreate"
+       is-library="false">
+
+    <section-starting-page>
+        <title>Kreate</title>
+        <description>
+            One declarative DSL for Kotlin JVM and Multiplatform builds — platform setup,
+            native interop, security scanning, documentation, testing and publishing,
+            without the Gradle boilerplate.
+        </description>
+
+        <spotlight>
+            <a href="Getting-Started.md"
+               type="start"
+               summary="Apply the plugin, write your first kreate { } block, and build.">
+                Getting started
+            </a>
+            <a href="JNI-Support.md"
+               type="cross-platform"
+               summary="Bridge C++ into the JVM: generated headers, CMake builds, and natives packaged into your JAR.">
+                JNI
+            </a>
+        </spotlight>
+
+        <primary>
+            <title>Core features</title>
+            <a href="Platform-Overview.md"
+               summary="Java toolchains, explicit API mode, and warning policy applied consistently across every module.">
+                Platform configuration
+            </a>
+            <a href="C-Interoperation-Overview.md"
+               summary="Bridge Rust, C, and C++ libraries into Kotlin/Native through Cargo or CMake.">
+                C-interop
+            </a>
+            <a href="Trivy-Overview.md"
+               summary="Scan dependencies for CVEs, verify licence compliance, and catch hard-coded secrets.">
+                Security and compliance
+            </a>
+            <a href="Publishing-Overview.md"
+               summary="Signed releases to Maven Central and the GitLab Package Registry with full POM metadata.">
+                Publishing
+            </a>
+        </primary>
+
+        <secondary>
+            <title>Build productivity</title>
+            <a href="Constants-Overview.md"
+               summary="Generate type-safe Kotlin constants from build values — no more reading properties at runtime.">
+                Build constants
+            </a>
+            <a href="Testing-Overview.md"
+               summary="Parallel execution, readable logging, and HTML and XML reports for CI.">
+                Testing
+            </a>
+            <a href="Detekt-Overview.md"
+               summary="Static analysis wired in, with reports in every format your pipeline consumes.">
+                Static analysis
+            </a>
+            <a href="Documentation-Overview.md"
+               summary="Dokka API documentation configured from the same metadata as your POM.">
+                API documentation
+            </a>
+        </secondary>
+
+        <misc>
+            <cards narrow="true">
+                <title>Reference</title>
+                <a href="Task-Reference.md" summary="Every task the plugin registers, what it consumes, and what it produces.">
+                    Task reference
+                </a>
+                <a href="Compatibility.md" summary="Supported Gradle, JDK, and Kotlin versions, and what is verified in CI.">
+                    Compatibility
+                </a>
+                <a href="CI-Integration.md" summary="Wire the plugin's checks into GitHub Actions, GitLab CI, or any other runner.">
+                    CI integration
+                </a>
+            </cards>
+
+            <cards>
+                <title>Native integration</title>
+                <a href="JNI-Headers.md" summary="Generate JNI headers from your external declarations so the C++ compiler checks your signatures.">
+                    Header generation
+                </a>
+                <a href="JNI-Packaging.md" summary="Ship shared libraries inside your JAR so consumers need no java.library.path.">
+                    Packaging natives
+                </a>
+                <a href="JNI-Troubleshooting.md" summary="The native build failures you are most likely to hit, and what each one means.">
+                    Troubleshooting
+                </a>
+            </cards>
+
+            <links narrow="true">
+                <group>
+                    <title>Project</title>
+                    <a href="%repo%">Source code</a>
+                    <a href="%issues%">Issue tracker</a>
+                    <a href="%repo%/blob/main/CHANGELOG.md">Changelog</a>
+                    <a href="%repo%/blob/main/SECURITY.md">Security policy</a>
+                </group>
+                <group>
+                    <title>Get involved</title>
+                    <a href="%repo%/blob/main/CONTRIBUTING.md">Contributing</a>
+                    <a href="%repo%/blob/main/CODE_OF_CONDUCT.md">Code of conduct</a>
+                    <a href="https://discord.com/invite/W25gFXDVFb">Discord</a>
+                </group>
+            </links>
+        </misc>
+    </section-starting-page>
+
+</topic>

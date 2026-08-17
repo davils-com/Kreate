@@ -92,7 +92,7 @@ public abstract class TrivySecretScan @Inject constructor(
      * @since 1.2.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         var hasSecrets = false
 
         sourceFiles.forEach { file ->

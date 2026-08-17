@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+# A new push to the same branch makes the in-flight run obsolete. Cancel it rather than
+# pay for a matrix that nobody will look at.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+env:
+  # Turns a missing CMake into a test failure instead of a silent skip. Locally the native
+  # tests may be skipped; in CI they must not be.
+  KREATE_REQUIRE_CMAKE: 'true'
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }}, JDK ${{ matrix.java }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+
+    strategy:
+      # One platform failing is exactly the signal this matrix exists to produce, so let
+      # the others finish and report too.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        java: ['17', '21', '25']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - name: Set up Gradle
+        uses: gradle/actions@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          # Verifies the checked-in gradle-wrapper.jar against the published checksums.
+          validate-wrappers: true
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/develop' }}
+
+      # The JNI pipeline shells out to CMake. Without it the native tests would be skipped
+      # and this matrix would prove nothing about the cross-platform behaviour it exists for.
+      - name: Install CMake (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y cmake
+
+      - name: Install CMake (macOS)
+        if: runner.os == 'macOS'
+        run: brew install cmake
+
+      - name: Verify CMake
+        run: cmake --version
+
+      # `kreate-plugin` is an included build. The root `build` task only reaches it far
+      # enough to produce the JAR that `:example` consumes — it runs none of the plugin's
+      # own tests, Detekt, or apiCheck. Both targets are therefore named explicitly, or CI
+      # would report green without a single plugin test having run.
+      - name: Build and check
+        run: ./gradlew :kreate-plugin:build build --configuration-cache --stacktrace
+
+      - name: Verify the example consumer end to end
+        # Exercises the published DSL the way a consumer does: scaffolds, generates headers,
+        # builds the native library, packages it and actually loads it at runtime.
+        run: ./gradlew :example:run --configuration-cache --stacktrace
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-reports-${{ matrix.os }}-jdk${{ matrix.java }}
+          path: |
+            kreate-plugin/build/reports/tests/
+            kreate-plugin/build/test-results/
+          retention-days: 7
+
+  reproducible:
+    name: Reproducible build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          validate-wrappers: true
+
+      # The build conventions pin archive timestamps and file order. This proves it, which
+      # is what makes an artifact independently verifiable against its source.
+      - name: Build the plugin JAR twice and compare checksums
+        run: |
+          ./gradlew :kreate-plugin:jar
+          sha256sum kreate-plugin/build/libs/*.jar > first.sha256
+          ./gradlew :kreate-plugin:clean :kreate-plugin:jar
+          sha256sum kreate-plugin/build/libs/*.jar > second.sha256
+          diff first.sha256 second.sha256 || {
+            echo "::error::The plugin JAR is not reproducible."
+            exit 1
+          }

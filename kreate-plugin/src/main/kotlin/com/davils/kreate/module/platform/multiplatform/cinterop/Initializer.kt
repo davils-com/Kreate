@@ -17,6 +17,7 @@
 package com.davils.kreate.module.platform.multiplatform.cinterop
 
 import com.davils.kreate.KreateExtension
+import com.davils.kreate.KreateTasks
 import com.davils.kreate.jobs.executeTaskBeforeCompile
 import com.davils.kreate.module.platform.multiplatform.cinterop.tasks.AddRustDependencies
 import com.davils.kreate.module.platform.multiplatform.cinterop.tasks.CompileNative
@@ -33,7 +34,6 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
-import java.io.File
 
 /**
  * Initializes the C-interop configuration for the project.
@@ -44,18 +44,12 @@ import java.io.File
  * @param extension The Kreate configuration extension.
  * @since 1.0.0
  */
-public fun Project.initializeCInterop(extension: KreateExtension) {
+internal fun Project.initializeCInterop(extension: KreateExtension) {
     val cInteropConfig = extension.platform.multiplatform.cInterop
     if (!cInteropConfig.enabled.get()) return
 
     addCInteropTasks(extension)
     applyNativeTargets(cInteropConfig)
-}
-
-private fun validateRootDir(rootDir: File) {
-    if (!rootDir.exists() && !rootDir.mkdirs()) {
-        throw GradleException("Failed to create root directory: ${rootDir.absolutePath}")
-    }
 }
 
 private fun Project.addCInteropTasks(extension: KreateExtension) {
@@ -71,39 +65,43 @@ private fun Project.addRustCInteropTasks(extension: KreateExtension) {
 
     val cInteropConfig = extension.platform.multiplatform.cInterop
     val projectRootDir = resolveRootDir(cInteropConfig)
-    validateRootDir(projectRootDir)
 
     val rustProject = projectRootDir.resolve(projectName)
-    val initializeRustProject = tasks.register<InitializeRustProject>("kreate-c-interop-initialize") {
+    val initializeRustProject = tasks.register<InitializeRustProject>(KreateTasks.CInterop.INITIALIZE) {
         this.workDir.set(projectRootDir)
         this.projectName.set(projectName)
     }
 
-    val addRustDependencies = tasks.register<AddRustDependencies>("kreate-c-interop-dependencies") {
+    val addRustDependencies = tasks.register<AddRustDependencies>(KreateTasks.CInterop.DEPENDENCIES) {
         workDir.set(rustProject)
         dependsOn(initializeRustProject)
     }
 
-    val configureCargo = tasks.register<ConfigureCargo>("kreate-c-interop-configure") {
+    val configureCargo = tasks.register<ConfigureCargo>(KreateTasks.CInterop.CONFIGURE) {
         workDir.set(rustProject)
         dependsOn(addRustDependencies)
     }
 
-    val generateRustBuildScript = tasks.register<GenerateRustBuildScript>("kreate-c-interop-script") {
+    val generateRustBuildScript = tasks.register<GenerateRustBuildScript>(KreateTasks.CInterop.SCRIPT) {
         workDir.set(rustProject)
         this.projectName.set(projectName)
         dependsOn(configureCargo)
     }
 
-    val compileRust = tasks.register<CompileRust>("kreate-c-interop-compile") {
+    val compileRust = tasks.register<CompileRust>(KreateTasks.CInterop.COMPILE) {
         workDir.set(rustProject)
+        nativeSources.from(
+            fileTree(rustProject) {
+                include("Cargo.toml", "build.rs", "src/**")
+            }
+        )
         if (cInteropConfig.rustTargets.isPresent) {
             rustTargets.set(cInteropConfig.rustTargets)
         }
         dependsOn(generateRustBuildScript)
     }
 
-    val generateDefinitionFiles = tasks.register<GenerateDefinitionFiles>("kreate-c-interop-definitions") {
+    val generateDefinitionFiles = tasks.register<GenerateDefinitionFiles>(KreateTasks.CInterop.DEFINITIONS) {
         workDir.set(rustProject)
         this.rootDir.set(projectRootDir)
         this.projectName.set(projectName)
@@ -119,7 +117,7 @@ private fun Project.addRustCInteropTasks(extension: KreateExtension) {
     tasks.withType<CInteropProcess>().configureEach {
         dependsOn(generateDefinitionFiles)
     }
-    executeTaskBeforeCompile(generateDefinitionFiles.get())
+    executeTaskBeforeCompile(generateDefinitionFiles)
 }
 
 private fun Project.addNativeCInteropTasks(extension: KreateExtension) {
@@ -127,21 +125,25 @@ private fun Project.addNativeCInteropTasks(extension: KreateExtension) {
 
     val cInteropConfig = extension.platform.multiplatform.cInterop
     val projectRootDir = resolveRootDir(cInteropConfig)
-    validateRootDir(projectRootDir)
 
     val nativeProject = projectRootDir.resolve(projectName)
-    val initializeNativeProject = tasks.register<InitializeNativeProject>("kreate-c-interop-initialize") {
+    val initializeNativeProject = tasks.register<InitializeNativeProject>(KreateTasks.CInterop.INITIALIZE) {
         this.workDir.set(projectRootDir)
         this.projectName.set(projectName)
         this.language.set(cInteropConfig.language)
     }
 
-    val compileNative = tasks.register<CompileNative>("kreate-c-interop-compile") {
+    val compileNative = tasks.register<CompileNative>(KreateTasks.CInterop.COMPILE) {
         this.workDir.set(nativeProject)
+        nativeSources.from(
+            fileTree(nativeProject) {
+                include("CMakeLists.txt", "src/**", "include/**")
+            }
+        )
         dependsOn(initializeNativeProject)
     }
 
-    val generateDefinitionFiles = tasks.register<GenerateDefinitionFiles>("kreate-c-interop-definitions") {
+    val generateDefinitionFiles = tasks.register<GenerateDefinitionFiles>(KreateTasks.CInterop.DEFINITIONS) {
         this.workDir.set(nativeProject)
         this.rootDir.set(projectRootDir)
         this.projectName.set(projectName)
@@ -154,7 +156,7 @@ private fun Project.addNativeCInteropTasks(extension: KreateExtension) {
     tasks.withType<CInteropProcess>().configureEach {
         dependsOn(generateDefinitionFiles)
     }
-    executeTaskBeforeCompile(generateDefinitionFiles.get())
+    executeTaskBeforeCompile(generateDefinitionFiles)
 }
 
 private fun Project.applyNativeTargets(cInteropConfig: CInteropExtension) {

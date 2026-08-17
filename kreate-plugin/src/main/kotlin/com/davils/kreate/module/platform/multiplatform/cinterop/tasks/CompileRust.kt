@@ -19,19 +19,22 @@ package com.davils.kreate.module.platform.multiplatform.cinterop.tasks
 import com.davils.kreate.jobs.Task
 import com.davils.kreate.module.platform.multiplatform.cinterop.resolveCargoCommand
 import com.davils.kreate.module.platform.multiplatform.cinterop.resolveRustTargets
+import com.davils.kreate.tooling.runExternalTool
 import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
-import org.gradle.process.ExecOperations
 import javax.inject.Inject
 
 /**
@@ -52,12 +55,30 @@ public abstract class CompileRust @Inject constructor(
     private val exec: ExecOperations
 ) : Task("Compile Rust code for C interop", "kreate c-interoperation") {
     /**
-     * The working directory containing the Rust project.
+     * The native project directory the task writes into.
+     *
+     * Deliberately not an input: this directory <i>contains</i> the task's own output, so
+     * declaring it as an input would nest the output inside the input and make Gradle's
+     * up-to-date check meaningless. What the task actually reads is declared separately.
+     *
      * @since 1.0.0
      */
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Internal
     public abstract val workDir: DirectoryProperty
+
+    /**
+     * The native sources the build compiles.
+     *
+     * Declared so that Gradle re-runs the compilation when they change. A task that declares
+     * outputs but no relevant inputs is considered up to date as long as its outputs are
+     * untouched, which would leave an edited source file silently uncompiled and the previous
+     * binary in place while the build reported success.
+     *
+     * @since 2.0.0
+     */
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    public abstract val nativeSources: ConfigurableFileCollection
 
     /**
      * The list of Rust targets to compile for.
@@ -82,19 +103,18 @@ public abstract class CompileRust @Inject constructor(
      * @since 1.0.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         val targets = resolveRustTargets(rustTargets)
         val cargoCmd = resolveCargoCommand()
 
         for (target in targets) {
-            try {
-                exec.exec {
-                    workingDir = workDir.get().asFile
-                    commandLine(cargoCmd, "build", "--target", target, "--release")
-                }
-            } catch (_: Exception) {
-                throw GradleException("Failed to compile Rust code for target '$target'.")
-            }
+            runExternalTool(
+                exec = exec,
+                logger = logger,
+                description = "Cargo build for target '$target'",
+                workingDirectory = workDir.get().asFile,
+                arguments = listOf(cargoCmd, "build", "--target", target, "--release")
+            )
         }
     }
 }

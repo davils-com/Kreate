@@ -20,6 +20,7 @@ import com.davils.kreate.KreateExtension
 import com.davils.kreate.module.project.detekt.extension.DetektExtension
 import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.plugin.DetektPlugin
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
@@ -37,11 +38,27 @@ import dev.detekt.gradle.extensions.DetektExtension as KDetektExtension
 internal fun Project.initializeDetekt(extension: KreateExtension) {
     val detektExtension = extension.project.detekt
     if (!detektExtension.enabled.get()) {
-         return
+        return
     }
 
     if (!plugins.hasPlugin(DetektPlugin::class.java)) {
-        error("Detekt Plugin not applied. Do it yourself: 'dev.detekt'")
+        throw GradleException(
+            """
+                Kreate's Detekt integration is enabled, but the Detekt plugin is not applied to
+                project '$path'.
+
+                Kreate configures Detekt, it does not apply it — that keeps the Detekt version
+                under your control instead of pinning it to Kreate's release cycle.
+
+                Add it to your build script:
+
+                    plugins {
+                        id("dev.detekt") version "<version>"
+                    }
+
+                Or disable the integration with `kreate { project { detekt { enabled = false } } }`.
+            """.trimIndent()
+        )
     }
 
     configureDetektExtension(detektExtension)

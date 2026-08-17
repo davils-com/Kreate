@@ -6,11 +6,24 @@ import java.time.Year
 
 plugins {
     alias(libs.plugins.kreate)
-    id("dev.detekt") version "2.0.0-alpha.5"
+    id("dev.detekt") version "2.0.0-alpha.6"
     kotlin("jvm") version "2.4.10"
+    application
+}
+
+application {
+    mainClass = "com.davils.example.JNIKt"
 }
 
 group = "com.example"
+
+detekt {
+    // Detekt would otherwise auto-discover config/detekt/detekt.yml from the repository
+    // root, which is Kreate's own strict configuration and needs rule set plugins that a
+    // consumer does not have.
+    config.setFrom(rootProject.file("config/detekt/detekt-consumer.yml"))
+    buildUponDefaultConfig = true
+}
 
 dependencyLocking {
     lockAllConfigurations()
@@ -56,8 +69,22 @@ kreate {
                 enabled = true
                 projectDirectory = layout.projectDirectory.dir("jni")
                 nameOverride = "example"
+                buildType = "Release"
                 libraryRuntimePaths = listOf()
                 libraryIncludePaths = listOf()
+
+                headers {
+                    // Generates example_jni.h from the `external` declarations in JNI.kt.
+                    enabled = true
+                }
+
+                packaging {
+                    // Puts libexample.so into the JAR under natives/<os>-<arch>/ and
+                    // generates KreateNativeLoader so the artifact works without
+                    // -Djava.library.path.
+                    enabled = true
+                    generateLoader = true
+                }
             }
         }
     }
@@ -148,7 +175,7 @@ kreate {
             enabled = false
             buildUponDefaultConfig = true
             allRules = true
-            config = rootProject.file("detekt.yaml")
+            config = rootProject.file("config/detekt/detekt-consumer.yml")
 
             reports {
                 checkstyle {

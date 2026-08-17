@@ -1,0 +1,34 @@
+# Detekt configuration for the `:example` consumer project.
+#
+# Kept separate from config/detekt/detekt.yml on purpose: that file is the plugin's own
+# strict configuration and references the `ktlint` and `libraries` rule sets, which are
+# only on the kreate-plugin classpath. A consumer must be able to use Kreate without
+# installing extra detekt rule set plugins, and this file proves that.
+
+config:
+  validation: true
+  warningsAsErrors: true
+
+style:
+  # Explicit API mode already requires the `public` modifier everywhere.
+  RedundantVisibilityModifier:
+    active: false
+  # Gradle managed properties require abstract classes with no concrete members.
+  AbstractClassCanBeConcreteClass:
+    active: false
+  OptionalUnit:
+    active: false
+  MaxLineLength:
+    maxLineLength: 120
+
+complexity:
+  LabeledExpression:
+    active: true
+    ignoredLabels:
+      - 'forEach'
+      - 'apply'
+      - 'run'
+      - 'let'
+      - 'also'
+      - 'with'
+      - 'configure'

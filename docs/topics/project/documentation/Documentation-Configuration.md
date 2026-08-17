@@ -1,5 +1,9 @@
 # Configuration Reference
 
+<link-summary>Every property in the docs block.</link-summary>
+
+<card-summary>Module name, output directory, and copyright.</card-summary>
+
 ## Properties
 
 | Property          | Type                | Default                         | Description                                              |
@@ -19,8 +23,8 @@ generated HTML site and in the module list when multiple modules are aggregated.
 
 ```kotlin
 docs {
-    enabled.set(true)
-    moduleName.set("MyLibrary")
+    enabled = true
+    moduleName = "MyLibrary"
 }
 ```
 
@@ -31,8 +35,8 @@ plain HTML in the footer of every generated page, so HTML tags are supported.
 
 ```kotlin
 docs {
-    enabled.set(true)
-    copyright.set("© 2026 Davils. Licensed under Apache 2.0.")
+    enabled = true
+    copyright = "© 2026 Davils. Licensed under Apache 2.0."
 }
 ```
 
@@ -46,8 +50,8 @@ The path is relative to the build directory.
 
 ```kotlin
 docs {
-    enabled.set(true)
-    outputDirectory.set("docs/api")
+    enabled = true
+    outputDirectory = "docs/api"
 }
 ```
 
@@ -58,3 +62,10 @@ The HTML site is then written to `build/docs/api/` instead of the default `build
 > plugin.
 >
 {style="note"}
+
+<seealso>
+    <category ref="project">
+        <a href="Documentation-Overview.md">Overview</a>
+        <a href="Documentation-Examples.md">Examples</a>
+    </category>
+</seealso>

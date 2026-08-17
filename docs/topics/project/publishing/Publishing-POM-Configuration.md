@@ -1,5 +1,9 @@
 # POM Configuration
 
+<link-summary>Declaring POM metadata: licences, developers, SCM.</link-summary>
+
+<card-summary>Everything Maven Central requires, declaratively.</card-summary>
+
 The `pom { }` block inside `publish { }` configures the Maven POM metadata that is embedded
 in every published artifact. This metadata is required by Maven Central and used by dependency
 management tools to display project information. Kreate applies the same POM configuration to
@@ -11,39 +15,39 @@ both the Maven Central and GitLab targets.
 kreate {
     project {
         publish {
-            enabled.set(true)
-            inceptionYear.set(2024)
-            website.set("https://github.com/davils-com/mylib")
+            enabled = true
+            inceptionYear = 2024
+            website = "https://github.com/davils-com/mylib"
 
             pom {
                 licenses {
                     license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        distribution.set("repo")
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
                     }
                 }
                 developers {
                     developer {
-                        id.set("davils")
-                        name.set("Davils")
-                        email.set("contact@davils.com")
-                        organization.set("Davils")
-                        timezone.set("Europe/Berlin")
+                        id = "davils"
+                        name = "Davils"
+                        email = "contact@davils.com"
+                        organization = "Davils"
+                        timezone = "Europe/Berlin"
                     }
                 }
                 scm {
-                    url.set("https://github.com/davils-com/mylib")
-                    connection.set("scm:git:git://github.com/davils-com/mylib.git")
-                    developerConnection.set("scm:git:ssh://git@github.com/davils-com/mylib.git")
+                    url = "https://github.com/davils-com/mylib"
+                    connection = "scm:git:git://github.com/davils-com/mylib.git"
+                    developerConnection = "scm:git:ssh://git@github.com/davils-com/mylib.git"
                 }
                 issueManagement {
-                    system.set("GitHub Issues")
-                    url.set("https://github.com/davils-com/mylib/issues")
+                    system = "GitHub Issues"
+                    url = "https://github.com/davils-com/mylib/issues"
                 }
                 ciManagement {
-                    system.set("GitLab CI")
-                    url.set("https://gitlab.com/davils-com/mylib/-/pipelines")
+                    system = "GitLab CI"
+                    url = "https://gitlab.com/davils-com/mylib/-/pipelines"
                 }
             }
         }
@@ -101,9 +105,9 @@ For GitHub repositories, the standard values are:
 
 ```kotlin
 scm {
-    url.set("https://github.com/<org>/<repo>")
-    connection.set("scm:git:git://github.com/<org>/<repo>.git")
-    developerConnection.set("scm:git:ssh://git@github.com/<org>/<repo>.git")
+    url = "https://github.com/<org>/<repo>"
+    connection = "scm:git:git://github.com/<org>/<repo>.git"
+    developerConnection = "scm:git:ssh://git@github.com/<org>/<repo>.git"
 }
 ```
 
@@ -132,3 +136,10 @@ but including them improves discoverability and transparency for library consume
 > `<issueManagement/>` or `<ciManagement/>` tags into the published POM.
 >
 {style="tip"}
+
+<seealso>
+    <category ref="project">
+        <a href="Publishing-Overview.md">Overview</a>
+        <a href="Project-Metadata.md">Project metadata</a>
+    </category>
+</seealso>

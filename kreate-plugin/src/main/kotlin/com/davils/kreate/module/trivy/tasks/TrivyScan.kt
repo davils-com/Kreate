@@ -42,7 +42,7 @@ public abstract class TrivyScan : Task(
      * @since 1.2.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         // Lifecycle aggregator
     }
 }

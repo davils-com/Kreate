@@ -1,5 +1,9 @@
 # GitLab Package Registry
 
+<link-summary>Publishing to the GitLab Package Registry.</link-summary>
+
+<card-summary>CI-token authentication with no manual credential handling.</card-summary>
+
 Kreate supports publishing to the [GitLab Package Registry](https://docs.gitlab.com/ee/user/packages/maven_repository/)
 using CI job token authentication.
 
@@ -33,12 +37,12 @@ nothing when run outside of a GitLab CI pipeline.
 kreate {
     project {
         publish {
-            enabled.set(true)
+            enabled = true
 
             repositories {
                 gitlab {
-                    enabled.set(true)
-                    name.set("MyRegistry")
+                    enabled = true
+                    name = "MyRegistry"
                 }
             }
         }
@@ -62,10 +66,10 @@ If your pipeline uses non-standard variable names, override them:
 
 ```kotlin
 gitlab {
-    enabled.set(true)
-    tokenEnv.set("CUSTOM_DEPLOY_TOKEN")
-    projectIdEnv.set("CUSTOM_PROJECT_ID")
-    apiUrlEnv.set("CUSTOM_API_URL")
+    enabled = true
+    tokenEnv = "CUSTOM_DEPLOY_TOKEN"
+    projectIdEnv = "CUSTOM_PROJECT_ID"
+    apiUrlEnv = "CUSTOM_API_URL"
 }
 ```
 
@@ -139,3 +143,12 @@ publish:
   only:
     - tags
 ```
+
+<seealso>
+    <category ref="project">
+        <a href="Publishing-Overview.md">Overview</a>
+    </category>
+    <category ref="reference">
+        <a href="CI-Integration.md">CI integration</a>
+    </category>
+</seealso>

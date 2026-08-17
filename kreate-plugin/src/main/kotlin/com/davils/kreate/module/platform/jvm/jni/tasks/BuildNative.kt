@@ -18,31 +18,36 @@ package com.davils.kreate.module.platform.jvm.jni.tasks
 
 import com.davils.kreate.jobs.Task
 import com.davils.kreate.module.platform.jvm.jni.resolveCmakeCommand
-import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
-import java.io.File
 import javax.inject.Inject
 
 /**
- * Task to build the native JNI library using CMake.
+ * Builds the native JNI library with CMake.
  *
- * This task runs `cmake` to configure the build inside a dedicated `build`
- * directory under the native project, then executes `cmake --build` to produce
- * the shared library (`.dylib`/`.so`/`.dll`). The produced binary directory is
- * exposed via [outputDir] and is intended to be added to `java.library.path`.
+ * Every file the native build reads is declared as an input. That is not a formality: a
+ * task that declares outputs but no relevant inputs is considered up to date by Gradle as
+ * long as its outputs are untouched, which means edits to C++ sources produce no rebuild
+ * and the JVM keeps loading a stale shared library. Declaring the sources, the generated
+ * headers and the CMake cache is what makes the incremental behaviour correct.
  *
  * @param exec The executive operations used to run external commands.
  * @since 1.1.0
  */
-@DisableCachingByDefault(because = "CMake build depends on external environment and tools")
+@DisableCachingByDefault(because = "Native artifacts are tied to the local toolchain and are not relocatable")
 public abstract class BuildNative @Inject constructor(
     /**
      * The executive operations instance.
@@ -51,11 +56,25 @@ public abstract class BuildNative @Inject constructor(
     private val exec: ExecOperations
 ) : Task("Builds the native JNI library with CMake.", "kreate jni") {
     /**
-     * The native project directory (`<root>/<projectName>`).
-     * @since 1.1.0
+     * The native sources and headers the build compiles.
+     * @since 2.0.0
      */
-    @get:Internal
-    public abstract val workDir: DirectoryProperty
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    public abstract val nativeSources: ConfigurableFileCollection
+
+    /**
+     * The CMake cache produced by [ConfigureNative].
+     *
+     * Depending on the cache file rather than on the whole scratch directory keeps the two
+     * tasks free of overlapping outputs, since CMake writes into that directory during the
+     * build as well.
+     *
+     * @since 2.0.0
+     */
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
+    public abstract val cmakeCache: RegularFileProperty
 
     /**
      * The CMake build type. Defaults to `Release`.
@@ -66,42 +85,57 @@ public abstract class BuildNative @Inject constructor(
     public abstract val buildType: Property<String>
 
     /**
-     * The output directory containing the compiled native artifacts.
+     * An explicit CMake executable path, if one is configured.
+     * @since 2.0.0
+     */
+    @get:Input
+    @get:Optional
+    public abstract val cmakeExecutable: Property<String>
+
+    /**
+     * The home directory of the JDK the native code is compiled against.
+     * @since 2.0.0
+     */
+    @get:Input
+    public abstract val javaHome: Property<String>
+
+    /**
+     * The scratch directory CMake generated its build system into.
+     * @since 2.0.0
+     */
+    @get:Internal
+    public abstract val cmakeBuildDirectory: DirectoryProperty
+
+    /**
+     * The directory containing the compiled shared library.
      * @since 1.1.0
      */
     @get:OutputDirectory
-    public val outputDir: File
-        get() = workDir.get().asFile.resolve("build")
+    public abstract val libraryOutputDirectory: DirectoryProperty
 
     /**
-     * Configures and builds the native library.
+     * Builds the native library.
      *
      * @return Unit
-     * @throws GradleException If the CMake invocation fails.
      * @since 1.1.0
      */
     @TaskAction
-    override fun execute() {
-        val projectRoot = workDir.get().asFile
-        val buildDir = outputDir
-        if (!buildDir.exists() && !buildDir.mkdirs()) {
-            throw GradleException("Failed to create CMake build directory: ${buildDir.absolutePath}")
-        }
+    public fun execute() {
+        val type = buildType.getOrElse("Release")
 
-        val type = buildType.orNull ?: "Release"
-        val cmakeCmd = resolveCmakeCommand()
-
-        try {
-            exec.exec {
-                workingDir = projectRoot
-                commandLine(cmakeCmd, "-S", ".", "-B", buildDir.absolutePath, "-DCMAKE_BUILD_TYPE=$type")
-            }
-            exec.exec {
-                workingDir = projectRoot
-                commandLine(cmakeCmd, "--build", buildDir.absolutePath, "--config", type)
-            }
-        } catch (e: Exception) {
-            throw GradleException("Failed to build native JNI library: ${e.message}", e)
-        }
+        runCmake(
+            exec = exec,
+            logger = logger,
+            phase = "build",
+            workingDirectory = cmakeBuildDirectory.get().asFile,
+            javaHome = javaHome.get(),
+            arguments = listOf(
+                resolveCmakeCommand(cmakeExecutable.orNull),
+                "--build",
+                cmakeBuildDirectory.get().asFile.absolutePath,
+                "--config",
+                type
+            )
+        )
     }
 }

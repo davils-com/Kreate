@@ -1,5 +1,9 @@
 # Maven Central
 
+<link-summary>Publishing to Maven Central with GPG signing.</link-summary>
+
+<card-summary>Credentials, signing, and automatic release.</card-summary>
+
 Kreate uses the [Gradle Maven Publish Plugin by Vanniktech](https://vanniktech.github.io/gradle-maven-publish-plugin/central/)
 to publish to Maven Central. When enabled, Kreate configures coordinates, signing, and POM metadata from your `kreate { }` block — no manual
 `mavenPublishing { }` block is required.
@@ -32,7 +36,7 @@ Maven Central target:
 kreate {
     project {
         publish {
-            enabled.set(true)
+            enabled = true
 
             repositories {
                 mavenCentral {
@@ -171,3 +175,10 @@ Set the project version to end in `-SNAPSHOT` and run:
 Snapshots are available immediately in the Central Portal snapshot repository after the task
 completes. Signing is not required for snapshots — but if credentials are present, the
 artifacts will still be signed.
+
+<seealso>
+    <category ref="project">
+        <a href="Publishing-Overview.md">Overview</a>
+        <a href="Publishing-POM-Configuration.md">POM configuration</a>
+    </category>
+</seealso>

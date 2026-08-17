@@ -2,5 +2,11 @@
 <!DOCTYPE categories
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/categories.dtd">
 <categories>
-    <category id="wrs" name="Writerside documentation" order="1"/>
+    <category id="start" name="Getting oriented" order="1"/>
+    <category id="platform" name="Platform" order="2"/>
+    <category id="native" name="Native integration" order="3"/>
+    <category id="security" name="Security &amp; compliance" order="4"/>
+    <category id="project" name="Project" order="5"/>
+    <category id="reference" name="Reference" order="6"/>
+    <category id="external" name="External documentation" order="7"/>
 </categories>

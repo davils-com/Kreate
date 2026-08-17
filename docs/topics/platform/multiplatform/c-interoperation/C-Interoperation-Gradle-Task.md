@@ -1,9 +1,13 @@
 # Gradle Task Reference
 
+<link-summary>The C-interop task pipeline.</link-summary>
+
+<card-summary>What each task does and when it runs.</card-summary>
+
 All tasks live in the default Gradle task group and run in strict dependency order. They are
 registered only when `enabled` is `true`.
 
-## `kreate-c-interop-initialize`
+## `kreateCInteropInitialize`
 
 **Class:** `InitializeRustProject`
 
@@ -19,7 +23,7 @@ exists, the task is a no-op — it will not overwrite your existing Rust source 
 |-------------|----------------------------|
 | `outputDir` | `<workDir>/<projectName>/` |
 
-## `kreate-c-interop-dependencies`
+## `kreateCInteropDependencies`
 
 **Class:** `AddRustDependencies`
 
@@ -38,7 +42,7 @@ skipped automatically by checking the current `Cargo.toml` content before invoki
 >
 {style="note"}
 
-## `kreate-c-interop-configure`
+## `kreateCInteropConfigure`
 
 **Class:** `ConfigureCargo`
 
@@ -60,7 +64,7 @@ Kotlin/Native. If the block is already present, the task is a no-op.
 |--------------|------------------------|
 | `outputFile` | `<workDir>/Cargo.toml` |
 
-## `kreate-c-interop-script`
+## `kreateCInteropScript`
 
 **Class:** `GenerateRustBuildScript`
 
@@ -76,7 +80,7 @@ at `include/<projectName>.h`. If `build.rs` already exists and is non-empty, the
 |--------------|----------------------|
 | `outputFile` | `<workDir>/build.rs` |
 
-## `kreate-c-interop-compile`
+## `kreateCInteropCompile`
 
 **Class:** `CompileRust`
 
@@ -93,7 +97,7 @@ target name.
 |-------------|---------------------|
 | `outputDir` | `<workDir>/target/` |
 
-## `kreate-c-interop-definitions`
+## `kreateCInteropDefinitions`
 
 **Class:** `GenerateDefinitionFiles`
 
@@ -117,23 +121,32 @@ This task **always rewrites** the `.def` file — it is not incrementally skippe
 ## Task Dependency Graph
 
 ```
-kreate-c-interop-initialize
+kreateCInteropInitialize
         │
         ▼
-kreate-c-interop-dependencies
+kreateCInteropDependencies
         │
         ▼
-  kreate-c-interop-configure
+  kreateCInteropConfigure
         │
         ▼
-kreate-c-interop-script
+kreateCInteropScript
         │
         ▼
-   kreate-c-interop-compile
+   kreateCInteropCompile
         │
         ▼
-kreate-c-interop-definitions
+kreateCInteropDefinitions
         │
         ▼
  CInteropProcess (all)
 ```
+
+<seealso>
+    <category ref="native">
+        <a href="C-Interoperation-Overview.md">Overview</a>
+    </category>
+    <category ref="reference">
+        <a href="Task-Reference.md">Task reference</a>
+    </category>
+</seealso>

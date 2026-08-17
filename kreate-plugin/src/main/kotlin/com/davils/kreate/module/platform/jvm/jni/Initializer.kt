@@ -17,99 +17,267 @@
 package com.davils.kreate.module.platform.jvm.jni
 
 import com.davils.kreate.KreateExtension
-import com.davils.kreate.jobs.executeTaskBeforeCompile
+import com.davils.kreate.KreateTasks
 import com.davils.kreate.module.platform.jvm.jni.tasks.BuildNative
+import com.davils.kreate.module.platform.jvm.jni.tasks.ConfigureNative
+import com.davils.kreate.module.platform.jvm.jni.tasks.GenerateJniHeaders
+import com.davils.kreate.module.platform.jvm.jni.tasks.GenerateNativeLoader
 import com.davils.kreate.module.platform.jvm.jni.tasks.InitializeCppProject
-import org.gradle.api.GradleException
+import com.davils.kreate.system.currentPlatformId
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
+import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 import java.io.File
 
 /**
  * Initializes the JNI configuration for the project.
  *
- * Mirrors the C-interop feature layout: sources live under
- * `<projectDirectory>/<projectName>/src` with a `CMakeLists.txt` at
- * `<projectDirectory>/<projectName>/CMakeLists.txt`.
+ * Sources live under `<projectDirectory>/<projectName>/src` with a `CMakeLists.txt` at
+ * `<projectDirectory>/<projectName>/CMakeLists.txt`, mirroring the C-interop layout. All
+ * build outputs, in contrast, live under Gradle's build directory.
  *
- * When enabled this registers the full task chain and hooks the native build
- * into the Kotlin compile pipeline, and wires `-Djava.library.path` into any
- * [Test] and [JavaExec] task so the runtime can resolve the shared library.
- *
- * This works for both pure JVM projects and the JVM target of Kotlin
- * Multiplatform projects; in the latter case only the JVM target's
- * compilation, test, and run tasks are affected, leaving other platform
- * targets untouched.
+ * The pipeline runs *after* Kotlin compilation rather than before it. That ordering is
+ * what makes header generation possible at all — the headers are derived from the compiled
+ * `external` declarations — and it also removes a native build from the critical path of
+ * every Kotlin compile. Nothing on the JVM side needs the shared library until something
+ * is actually executed.
  *
  * @param extension The Kreate configuration extension.
  * @return Unit
  * @since 1.1.0
  */
-public fun Project.initializeJni(extension: KreateExtension) {
+internal fun Project.initializeJni(extension: KreateExtension) {
     val jniConfig = extension.platform.jvm.jni
     if (!jniConfig.enabled.get()) return
 
-    addJniTasks(extension)
-    applyRuntimeLibraryPath(extension)
-}
-
-private fun validateRootDir(rootDir: File) {
-    if (!rootDir.exists() && !rootDir.mkdirs()) {
-        throw GradleException("Failed to create root directory: ${rootDir.absolutePath}")
-    }
-}
-
-private fun Project.addJniTasks(extension: KreateExtension) {
-    val jniConfig = extension.platform.jvm.jni
     val projectName = resolveProjectName(extension)
+    val nativeProjectDir = resolveRootDir(jniConfig).resolve(projectName)
+    val platformId = currentPlatformId()
 
-    val rootDir = resolveRootDir(jniConfig)
-    validateRootDir(rootDir)
-    val nativeProjectDir = rootDir.resolve(projectName)
+    val cmakeBuildDir = layout.buildDirectory.dir("jni/$platformId/cmake")
+    val libraryDir = layout.buildDirectory.dir("jni/$platformId/lib")
+    val headerDir = layout.buildDirectory.dir("generated/jni/include")
+    val javaHome = resolveToolchainJavaHome(extension)
 
-    val initializeJniProject = tasks.register<InitializeCppProject>("kreate-jni-initialize") {
-        this.workDir.set(rootDir)
+    val initialize = tasks.register<InitializeCppProject>(KreateTasks.Jni.INITIALIZE) {
         this.projectName.set(projectName)
-        this.libraryIncludePaths.set(jniConfig.libraryIncludePaths)
+        this.projectRoot.set(layout.dir(provider { nativeProjectDir }))
     }
 
-    val buildNative = tasks.register<BuildNative>(KREATE_JNI_BUILD_TASK) {
-        this.workDir.set(nativeProjectDir)
-        dependsOn(initializeJniProject)
+    val headers = tasks.register<GenerateJniHeaders>(KreateTasks.Jni.HEADERS) {
+        classDirectories.from(jvmMainClassDirectories())
+        headerFileName.set(jniConfig.headers.fileName.orElse("${projectName}_jni.h"))
+        outputDirectory.set(headerDir)
+        onlyIf { jniConfig.headers.enabled.get() }
     }
 
-    executeTaskBeforeCompile(buildNative.get())
+    val configure = tasks.register<ConfigureNative>(KreateTasks.Jni.CONFIGURE) {
+        sourceDirectory.set(layout.dir(provider { nativeProjectDir }))
+        cmakeListsFile.set(layout.file(provider { nativeProjectDir.resolve("CMakeLists.txt") }))
+        cacheBoundPaths.set(
+            cmakeBuildDir.map { listOf(nativeProjectDir.absolutePath, it.asFile.absolutePath) }
+        )
+        generatedHeaderDirectory.set(headerDir)
+        buildType.set(jniConfig.buildType)
+        generator.set(jniConfig.generator)
+        cmakeExecutable.set(jniConfig.cmakeExecutable)
+        this.javaHome.set(javaHome)
+        libraryIncludePaths.set(jniConfig.libraryIncludePaths)
+        cmakeBuildDirectory.set(cmakeBuildDir)
+        libraryOutputDirectory.set(libraryDir)
+        cmakeCache.set(cmakeBuildDir.map { it.file("CMakeCache.txt") })
+        dependsOn(initialize, headers)
+    }
+
+    val build = tasks.register<BuildNative>(KreateTasks.Jni.BUILD) {
+        nativeSources.from(
+            fileTree(nativeProjectDir) {
+                include("CMakeLists.txt", "src/**", "include/**")
+            },
+            headerDir
+        )
+        cmakeCache.set(configure.flatMap { it.cmakeCache })
+        buildType.set(jniConfig.buildType)
+        cmakeExecutable.set(jniConfig.cmakeExecutable)
+        this.javaHome.set(javaHome)
+        cmakeBuildDirectory.set(cmakeBuildDir)
+        libraryOutputDirectory.set(libraryDir)
+    }
+
+    applyRuntimeLibraryPath(jniConfig, libraryDir, build.name)
+    applyNativePackaging(extension, projectName, libraryDir, platformId, build.name)
 }
 
-private fun Project.applyRuntimeLibraryPath(extension: KreateExtension) {
-    val jniConfig = extension.platform.jvm.jni
-    val projectName = resolveProjectName(extension)
-    val nativeLibDir = resolveRootDir(jniConfig).resolve(projectName).resolve("build")
-
-    val allLibraryPaths = provider {
-        val paths = mutableListOf(nativeLibDir.absolutePath)
-        jniConfig.libraryRuntimePaths.get().forEach { path ->
-            paths.add(file(path).absolutePath)
+/**
+ * Wires `-Djava.library.path` into every task that runs project code.
+ *
+ * @param jniConfig The JNI configuration extension.
+ * @param libraryDir The directory the native build writes its artifacts to.
+ * @param buildTaskName The name of the native build task these tasks must wait for.
+ * @return Unit
+ * @since 1.1.0
+ */
+private fun Project.applyRuntimeLibraryPath(
+    jniConfig: JniExtension,
+    libraryDir: Provider<out org.gradle.api.file.Directory>,
+    buildTaskName: String
+) {
+    val libraryPath = libraryDir.map { directory ->
+        val paths = mutableListOf(directory.asFile.absolutePath)
+        jniConfig.libraryRuntimePaths.getOrElse(emptyList()).forEach { path ->
+            paths += file(path).absolutePath
         }
         paths.joinToString(File.pathSeparator)
     }
 
     tasks.withType<Test>().configureEach {
-        dependsOn(KREATE_JNI_BUILD_TASK)
-        val filteredArgs = jvmArgs.filterNot { it.startsWith(JAVA_LIBRARY_PATH_PROPERTY) }
-        jvmArgs = filteredArgs
-        jvmArgs("$JAVA_LIBRARY_PATH_PROPERTY${allLibraryPaths.get()}")
+        dependsOn(buildTaskName)
+        jvmArgumentProviders.add(JavaLibraryPathArgumentProvider(libraryPath))
     }
+
     tasks.withType<JavaExec>().configureEach {
-        dependsOn(KREATE_JNI_BUILD_TASK)
-        val filteredArgs = jvmArgs.filterNot { it.startsWith(JAVA_LIBRARY_PATH_PROPERTY) }
-        jvmArgs = filteredArgs
-        jvmArgs("$JAVA_LIBRARY_PATH_PROPERTY${allLibraryPaths.get()}")
+        dependsOn(buildTaskName)
+        jvmArgumentProviders.add(JavaLibraryPathArgumentProvider(libraryPath))
     }
 }
 
-private const val KREATE_JNI_BUILD_TASK = "kreate-jni-build"
-private const val JAVA_LIBRARY_PATH_PROPERTY = "-Djava.library.path="
+/**
+ * Packages the built native libraries into the project's JAR and generates the loader.
+ *
+ * @param extension The Kreate configuration extension.
+ * @param projectName The native library base name.
+ * @param libraryDir The directory the native build writes its artifacts to.
+ * @param platformId The `<os>-<arch>` identifier the libraries are filed under.
+ * @param buildTaskName The name of the native build task the JAR must wait for.
+ * @return Unit
+ * @since 2.0.0
+ */
+private fun Project.applyNativePackaging(
+    extension: KreateExtension,
+    projectName: String,
+    libraryDir: Provider<out org.gradle.api.file.Directory>,
+    platformId: String,
+    buildTaskName: String
+) {
+    val packaging = extension.platform.jvm.jni.packaging
+    if (!packaging.enabled.get()) return
+
+    val resourcePath = packaging.resourcePath.get()
+
+    tasks.withType<Jar>().configureEach {
+        dependsOn(buildTaskName)
+        from(libraryDir) {
+            into("$resourcePath/$platformId")
+        }
+    }
+
+    if (!packaging.generateLoader.get()) return
+
+    val loaderDir = layout.buildDirectory.dir("generated/jni/kotlin")
+    val loaderPackage = resolveLoaderPackageName(extension, projectName)
+
+    val loader = tasks.register<GenerateNativeLoader>(KreateTasks.Jni.LOADER) {
+        packageName.set(loaderPackage)
+        this.resourcePath.set(resourcePath)
+        outputDirectory.set(loaderDir)
+    }
+
+    addGeneratedSourceDirectory(loaderDir, loader.name)
+}
+
+/**
+ * Resolves the JDK home the native code is compiled against.
+ *
+ * Taking the path from the Gradle toolchain rather than leaving it to CMake's own search
+ * is what guarantees that the JNI headers match the JVM the Kotlin code targets.
+ *
+ * @param extension The Kreate configuration extension.
+ * @return A provider of the absolute JDK home path.
+ * @since 2.0.0
+ */
+private fun Project.resolveToolchainJavaHome(extension: KreateExtension): Provider<String> {
+    val toolchains = extensions.getByType(JavaToolchainService::class.java)
+    val majorVersion = extension.platform.javaVersion.get().majorVersion.toInt()
+
+    return toolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(majorVersion))
+    }.map { it.metadata.installationPath.asFile.absolutePath }
+}
+
+/**
+ * Returns the directories holding the project's compiled JVM main classes.
+ *
+ * Handles both plain Kotlin/JVM projects and the JVM target of a multiplatform project.
+ * The returned collection carries its producing task dependencies, so a consumer only has
+ * to declare it as an input.
+ *
+ * @return The compiled main class directories, empty when no JVM output exists.
+ * @since 2.0.0
+ */
+private fun Project.jvmMainClassDirectories(): FileCollection {
+    val multiplatformOutput = extensions.findByType(KotlinMultiplatformExtension::class.java)
+        ?.targets
+        ?.withType(KotlinJvmTarget::class.java)
+        ?.firstOrNull()
+        ?.compilations
+        ?.getByName("main")
+        ?.output
+        ?.allOutputs
+
+    if (multiplatformOutput != null) return files(multiplatformOutput)
+
+    return extensions.findByType(JavaPluginExtension::class.java)
+        ?.sourceSets
+        ?.get(SourceSet.MAIN_SOURCE_SET_NAME)
+        ?.output
+        ?.classesDirs
+        ?: files()
+}
+
+/**
+ * Adds a generated directory to the project's main Kotlin sources.
+ *
+ * @param directory The generated source directory.
+ * @param builtBy The name of the task producing it.
+ * @return Unit
+ * @since 2.0.0
+ */
+private fun Project.addGeneratedSourceDirectory(
+    directory: Provider<out org.gradle.api.file.Directory>,
+    builtBy: String
+) {
+    val multiplatform = extensions.findByType(KotlinMultiplatformExtension::class.java)
+    if (multiplatform != null) {
+        multiplatform.sourceSets.getByName("jvmMain").kotlin.srcDir(files(directory).builtBy(builtBy))
+        return
+    }
+
+    val java = extensions.findByType(JavaPluginExtension::class.java) ?: return
+    java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDir(files(directory).builtBy(builtBy))
+}
+
+/**
+ * Resolves the package the generated loader is placed in.
+ *
+ * @param extension The Kreate configuration extension.
+ * @param projectName The sanitized native project name.
+ * @return The fully qualified package name.
+ * @since 2.0.0
+ */
+private fun Project.resolveLoaderPackageName(extension: KreateExtension, projectName: String): String {
+    val base = if (extension.project.name.isPresent) extension.project.name.get() else name
+    return "$group.$base.jni".lowercase().replace(" ", "").replace("-", "")
+        .ifBlank { "$projectName.jni" }
+}

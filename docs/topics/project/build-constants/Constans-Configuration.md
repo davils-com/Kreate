@@ -1,5 +1,9 @@
 # Configuration Reference
 
+<link-summary>Every property in the buildConstant block.</link-summary>
+
+<card-summary>Class name, package, output path, and constant registration.</card-summary>
+
 ## Top-Level Properties
 
 | Property              | Type                | Default             | Description                                                  |
@@ -25,8 +29,8 @@ Override the package entirely with `packageNameOverride`:
 
 ```kotlin
 buildConstant {
-    enabled.set(true)
-    packageNameOverride.set("com.example.internal")
+    enabled = true
+    packageNameOverride = "com.example.internal"
 }
 ```
 
@@ -42,7 +46,7 @@ be blank, otherwise an `IllegalArgumentException` is thrown immediately.
 
 ```kotlin
 buildConstant {
-    enabled.set(true)
+    enabled = true
     constant("version", project.version) // Any value via toString()
     constant("buildTime", System.currentTimeMillis())
     constant("name", "MyLibrary")
@@ -67,9 +71,9 @@ Customize the generated class name and its location inside the `build/` director
 
 ```kotlin
 buildConstant {
-    enabled.set(true)
-    className.set("AppConfig")
-    path.set("generated/sources")
+    enabled = true
+    className = "AppConfig"
+    path = "generated/sources"
     constant("version", project.version)
 }
 ```
@@ -93,3 +97,10 @@ public object BuildConstants {
 
 No additional configuration is required — this is wired automatically from
 `platform { explicitApi }`.
+
+<seealso>
+    <category ref="project">
+        <a href="Constants-Overview.md">Overview</a>
+        <a href="Constants-Examples.md">Examples</a>
+    </category>
+</seealso>

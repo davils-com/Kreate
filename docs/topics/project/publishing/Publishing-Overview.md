@@ -1,5 +1,14 @@
 # Publishing
 
+<link-summary>Publishing signed artifacts to Maven Central and GitLab.</link-summary>
+
+<card-summary>Repositories, signing, and POM metadata from one block.</card-summary>
+
+<tldr>
+<p><b>Enable</b>: <code>project { publish { enabled = true } }</code></p>
+<p><b>Requires</b>: the <code>com.vanniktech.maven.publish</code> plugin applied by you</p>
+</tldr>
+
 The `publish { }` block inside `kreate { project { } }` integrates artifact publishing into your
 Gradle build. Kreate supports two publish targets out of the box:
 
@@ -34,7 +43,7 @@ Enable the publishing module:
 kreate {
     project {
         publish {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -79,9 +88,12 @@ publish { enabled = true }
 All POM metadata is shared between both Maven Central and GitLab publish targets. Configure
 it once in `pom { }` and Kreate applies it to both.
 
-## Next Steps
 
-- **[Maven Central Publishing](Publishing-Maven-Central.md)**: GPG signing and automatic releases
-- **[GitLab Package Registry](Publishing-Gitlab-Registry.md)**: CI integration and job token auth
-- **[POM Configuration](Publishing-POM-Configuration.md)**: Licenses, SCM, and developer metadata
-- **[Examples](Publishing-Examples.md)**: Practical publishing setups and snippets
+<seealso>
+    <category ref="project">
+        <a href="Publishing-Maven-Central.md">Maven Central</a>
+        <a href="Publishing-Gitlab-Registry.md">GitLab Package Registry</a>
+        <a href="Publishing-POM-Configuration.md">POM configuration</a>
+        <a href="Publishing-Examples.md">Examples</a>
+    </category>
+</seealso>

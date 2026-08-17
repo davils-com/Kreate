@@ -18,22 +18,21 @@ package com.davils.kreate.jobs
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 /**
- * Configures the project to execute a specific task before any Kotlin compilation task.
+ * Configures the project to execute a specific task before every Kotlin compilation task.
  *
- * This function iterates through all [KotlinCompilationTask] instances in the project
- * and adds the provided task as a dependency to each.
+ * The task is passed as a [TaskProvider] and never realized here, so that registering a
+ * Kreate feature does not force the task to be created in builds that do not run it.
  *
- * @param task The task that must be executed before compilation.
- * @throws IllegalArgumentException If the task is not registered in the project.
+ * @param task The provider of the task that must run before compilation.
+ * @return Unit
  * @since 1.0.0
  */
-internal fun Project.executeTaskBeforeCompile(task: Task) {
-    require(tasks.contains(task)) { "Task ${task.name} is not registered in the project" }
-
+internal fun Project.executeTaskBeforeCompile(task: TaskProvider<out Task>) {
     tasks.withType<KotlinCompilationTask<*>>().configureEach {
         dependsOn(task)
     }

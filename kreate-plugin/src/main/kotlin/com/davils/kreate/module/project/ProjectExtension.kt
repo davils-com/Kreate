@@ -58,6 +58,36 @@ public abstract class ProjectExtension @Inject constructor(
     public val description: Property<String> = factory.property(String::class.java).convention("A Kreate project.")
 
     /**
+     * Whether Kreate adds Maven Central, the Gradle Plugin Portal and Google to the
+     * project's repositories.
+     *
+     * Defaults to `false`. Injecting repositories into a consumer's project is actively
+     * harmful in an enterprise build: such builds resolve through an internal mirror and
+     * commonly set `repositoriesMode = PREFER_SETTINGS` or `FAIL_ON_PROJECT_REPOS`, where
+     * an injected repository is at best a warning and at worst a build failure — or, worse
+     * still, a silent bypass of the mirror.
+     *
+     * Declare repositories in `settings.gradle.kts` instead, and only enable this for
+     * small projects that want the convenience.
+     *
+     * @since 2.0.0
+     */
+    public val applyDefaultRepositories: Property<Boolean> =
+        factory.property(Boolean::class.java).convention(false)
+
+    /**
+     * Whether Kreate applies the Kotlin serialization compiler plugin.
+     *
+     * Defaults to `false`. Until 2.0.0 the plugin was applied to every project whether it
+     * used serialization or not, which added a compiler plugin — and its cost — to builds
+     * that never asked for one.
+     *
+     * @since 2.0.0
+     */
+    public val applySerializationPlugin: Property<Boolean> =
+        factory.property(Boolean::class.java).convention(false)
+
+    /**
      * Configuration for project versioning.
      * @since 1.0.0
      */

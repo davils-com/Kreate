@@ -1,5 +1,15 @@
 # Trivy Security & Compliance
 
+<link-summary>Installing Trivy, enabling the scans, and running them.</link-summary>
+
+<card-summary>Three scans wired into your build: vulnerabilities, licences, and secrets.</card-summary>
+
+<tldr>
+<p><b>Enable</b>: <code>trivy { enabled = true }</code></p>
+<p><b>Needs</b>: the Trivy CLI, and dependency lock files for two of the three scans</p>
+<p><b>Run</b>: <code>./gradlew kreateTrivyScan</code></p>
+</tldr>
+
 Trivy is a comprehensive and versatile security scanner deeply integrated into the Kreate ecosystem. This integration enables developers to embed security checks directly into the build process, facilitating a "Shift Left" approach to identify vulnerabilities and compliance issues as early as possible.
 
 In Kreate, the Trivy integration focuses on three core areas:
@@ -104,7 +114,7 @@ After enabling locking or when changing dependencies, you must generate or updat
 </code-block>
 
 <warning>
-If no lockfiles are present, the <code>trivyLicenseScan</code> and <code>trivyVulnerabilityScan</code> tasks will not have any input to analyze and might not produce any results.
+If no lockfiles are present, the <code>kreateTrivyLicenseScan</code> and <code>kreateTrivyVulnerabilityScan</code> tasks will not have any input to analyze and might not produce any results.
 </warning>
 
 ## Quick Start
@@ -115,7 +125,7 @@ All Trivy scans are **disabled by default**. To use the module, it must be globa
 kreate {
     trivy {
         // Globally enable the Trivy module
-        enabled.set(true)
+        enabled = true
     }
 }
 ```
@@ -124,21 +134,21 @@ Once enabled, Kreate automatically registers the following Gradle tasks for your
 
 | Task Name                | Description                                                |
 |:-------------------------|:-----------------------------------------------------------|
-| `trivyScan`              | Lifecycle aggregator that runs all enabled Trivy scans.    |
-| `trivyVulnerabilityScan` | Scans lockfiles for known security vulnerabilities (CVEs). |
-| `trivyLicenseScan`       | Verifies dependencies for license compliance.              |
-| `trivySecretScan`        | Searches source code for hardcoded secrets.                |
+| `kreateTrivyScan`              | Lifecycle aggregator that runs all enabled Trivy scans.    |
+| `kreateTrivyVulnerabilityScan` | Scans lockfiles for known security vulnerabilities (CVEs). |
+| `kreateTrivyLicenseScan`       | Verifies dependencies for license compliance.              |
+| `kreateTrivySecretScan`        | Searches source code for hardcoded secrets.                |
 
 ## Running Scans
 
 Kreate provides multiple ways to run Trivy scans, ranging from running all checks at once to executing specific, targeted scans.
 
 ### Run All Enabled Scans
-The most common way to run scans is through the standard Gradle `check` lifecycle task. Kreate registers a central `trivyScan` task that aggregates all individual scanners and attaches it to the `check` task.
+The most common way to run scans is through the standard Gradle `check` lifecycle task. Kreate registers a central `kreateTrivyScan` task that aggregates all individual scanners and attaches it to the `check` task.
 
 To run all security checks:
 <code-block lang="bash">
-./gradlew trivyScan
+./gradlew kreateTrivyScan
 </code-block>
 
 
@@ -147,26 +157,33 @@ If you want to perform only a specific type of scan, you can call the correspond
 
 **License Compliance:**
 <code-block lang="bash">
-./gradlew trivyLicenseScan
+./gradlew kreateTrivyLicenseScan
 </code-block>
 
 **Vulnerability (CVE) Scanning:**
 <code-block lang="bash">
-./gradlew trivyVulnerabilityScan
+./gradlew kreateTrivyVulnerabilityScan
 </code-block>
 
 **Secret Detection:**
 <code-block lang="bash">
-./gradlew trivySecretScan
+./gradlew kreateTrivySecretScan
 </code-block>
 
 <tip>
 Individual tasks are particularly useful when you've just updated a lockfile or added a custom secret rule and want to verify your changes without running the full test suite.
 </tip>
 
-## Further Reading
 
-*   [**License Scanning**](Trivy-License-Scan.md): Monitoring and enforcing license policies.
-*   [**Vulnerability Scanning**](Trivy-Vulnerability-Scan.md): Details on searching for CVEs in dependencies.
-*   [**Secret Scanning**](Trivy-Secret-Scan.md): Protecting your project from leaked credentials.
-*   [**Configuration Reference**](Trivy-Configuration-Reference.md): A complete list of all available DSL parameters.
+<seealso>
+    <category ref="security">
+        <a href="Trivy-Vulnerability-Scan.md">Vulnerability scanning</a>
+        <a href="Trivy-License-Scan.md">Licence scanning</a>
+        <a href="Trivy-Secret-Scan.md">Secret scanning</a>
+        <a href="Trivy-Configuration-Reference.md">Configuration reference</a>
+    </category>
+    <category ref="reference">
+        <a href="CI-Integration.md">CI integration</a>
+        <a href="Task-Reference.md">Task reference</a>
+    </category>
+</seealso>

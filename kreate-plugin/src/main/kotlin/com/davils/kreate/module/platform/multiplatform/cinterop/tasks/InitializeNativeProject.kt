@@ -22,10 +22,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
@@ -50,11 +48,15 @@ public abstract class InitializeNativeProject : Task(
     "kreate c-interoperation"
 ) {
     /**
-     * The root working directory where the native project will be created.
-     * @since 1.3.0
+     * The native project directory the task writes into.
+     *
+     * Deliberately not an input: this directory <i>contains</i> the task's own output, so
+     * declaring it as an input would nest the output inside the input and make Gradle's
+     * up-to-date check meaningless. What the task actually reads is declared separately.
+     *
+     * @since 1.0.0
      */
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Internal
     public abstract val workDir: DirectoryProperty
 
     /**
@@ -95,7 +97,7 @@ public abstract class InitializeNativeProject : Task(
      * @since 1.3.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         val name = projectName.get()
         val lang = language.get()
         val projectRoot = workDir.get().asFile.resolve(name)
@@ -128,16 +130,27 @@ public abstract class InitializeNativeProject : Task(
     }
 
     private fun cMakeContent(name: String, language: NativeLanguage): String {
+        // Exhaustive over the enum on purpose: a new NativeLanguage must not silently
+        // fall through to the C scaffolding.
         val (langId, standardBlock, glob) = when (language) {
             NativeLanguage.CPP -> Triple(
                 "CXX",
-                "set(CMAKE_CXX_STANDARD 17)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)",
+                """
+                    set(CMAKE_CXX_STANDARD 17)
+                    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+                """.trimIndent(),
                 "\"src/*.cpp\" \"src/*.cc\""
             )
-            else -> Triple(
+            NativeLanguage.C -> Triple(
                 "C",
-                "set(CMAKE_C_STANDARD 11)\nset(CMAKE_C_STANDARD_REQUIRED ON)",
+                """
+                    set(CMAKE_C_STANDARD 11)
+                    set(CMAKE_C_STANDARD_REQUIRED ON)
+                """.trimIndent(),
                 "\"src/*.c\""
+            )
+            NativeLanguage.RUST -> error(
+                "Rust C-interop projects are scaffolded by InitializeRustProject, not by this task."
             )
         }
         return """

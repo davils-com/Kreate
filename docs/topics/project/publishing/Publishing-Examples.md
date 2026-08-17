@@ -1,5 +1,9 @@
 # Examples
 
+<link-summary>Worked publishing configuration examples.</link-summary>
+
+<card-summary>Complete publishing setups you can copy.</card-summary>
+
 ## Maven Central Only — Minimal
 
 ```kotlin
@@ -10,35 +14,35 @@ kreate {
         projectGroup = group.toString()
 
         publish {
-            enabled.set(true)
-            inceptionYear.set(2026)
-            website.set("https://github.com/davils-com/mylib")
+            enabled = true
+            inceptionYear = 2026
+            website = "https://github.com/davils-com/mylib"
 
             repositories {
                 mavenCentral {
-                    enabled.set(true)
+                    enabled = true
                 }
             }
 
             pom {
                 licenses {
                     license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        distribution.set("repo")
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
                     }
                 }
                 developers {
                     developer {
-                        id.set("davils")
-                        name.set("Davils")
-                        email.set("contact@davils.com")
+                        id = "davils"
+                        name = "Davils"
+                        email = "contact@davils.com"
                     }
                 }
                 scm {
-                    url.set("https://github.com/davils-com/mylib")
-                    connection.set("scm:git:git://github.com/davils-com/mylib.git")
-                    developerConnection.set("scm:git:ssh://git@github.com/davils-com/mylib.git")
+                    url = "https://github.com/davils-com/mylib"
+                    connection = "scm:git:git://github.com/davils-com/mylib.git"
+                    developerConnection = "scm:git:ssh://git@github.com/davils-com/mylib.git"
                 }
             }
         }
@@ -58,33 +62,33 @@ Publish with:
 kreate {
     project {
         publish {
-            enabled.set(true)
+            enabled = true
 
             repositories {
                 gitlab {
-                    enabled.set(true)
-                    name.set("GitLabRegistry")
+                    enabled = true
+                    name = "GitLabRegistry"
                 }
             }
 
             pom {
                 licenses {
                     license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        distribution.set("repo")
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
                     }
                 }
                 developers {
                     developer {
-                        id.set("davils")
-                        name.set("Davils")
+                        id = "davils"
+                        name = "Davils"
                     }
                 }
                 scm {
-                    url.set("https://gitlab.com/davils-com/mylib")
-                    connection.set("scm:git:git://gitlab.com/davils-com/mylib.git")
-                    developerConnection.set("scm:git:ssh://git@gitlab.com/davils-com/mylib.git")
+                    url = "https://gitlab.com/davils-com/mylib"
+                    connection = "scm:git:git://gitlab.com/davils-com/mylib.git"
+                    developerConnection = "scm:git:ssh://git@gitlab.com/davils-com/mylib.git"
                 }
             }
         }
@@ -101,51 +105,51 @@ for public releases; GitLab is used for internal pre-release distribution.
 kreate {
     project {
         publish {
-            enabled.set(true)
-            inceptionYear.set(2026)
-            website.set("https://github.com/davils-com/mylib")
+            enabled = true
+            inceptionYear = 2026
+            website = "https://github.com/davils-com/mylib"
 
             repositories {
                 mavenCentral {
-                    enabled.set(true)
-                    automaticRelease.set(true)
-                    signPublications.set(true)
+                    enabled = true
+                    automaticRelease = true
+                    signPublications = true
                 }
                 gitlab {
-                    enabled.set(true)
-                    name.set("InternalRegistry")
+                    enabled = true
+                    name = "InternalRegistry"
                 }
             }
 
             pom {
                 licenses {
                     license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        distribution.set("repo")
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
                     }
                 }
                 developers {
                     developer {
-                        id.set("davils")
-                        name.set("Davils")
-                        email.set("contact@davils.com")
-                        organization.set("Davils")
-                        timezone.set("Europe/Berlin")
+                        id = "davils"
+                        name = "Davils"
+                        email = "contact@davils.com"
+                        organization = "Davils"
+                        timezone = "Europe/Berlin"
                     }
                 }
                 scm {
-                    url.set("https://github.com/davils-com/mylib")
-                    connection.set("scm:git:git://github.com/davils-com/mylib.git")
-                    developerConnection.set("scm:git:ssh://git@github.com/davils-com/mylib.git")
+                    url = "https://github.com/davils-com/mylib"
+                    connection = "scm:git:git://github.com/davils-com/mylib.git"
+                    developerConnection = "scm:git:ssh://git@github.com/davils-com/mylib.git"
                 }
                 issueManagement {
-                    system.set("GitHub Issues")
-                    url.set("https://github.com/davils-com/mylib/issues")
+                    system = "GitHub Issues"
+                    url = "https://github.com/davils-com/mylib/issues"
                 }
                 ciManagement {
-                    system.set("GitLab CI")
-                    url.set("https://gitlab.com/davils-com/mylib/-/pipelines")
+                    system = "GitLab CI"
+                    url = "https://gitlab.com/davils-com/mylib/-/pipelines"
                 }
             }
         }
@@ -160,9 +164,9 @@ Upload to the Central Portal staging area and release manually via the web UI.
 ```kotlin
 repositories {
     mavenCentral {
-        enabled.set(true)
-        automaticRelease.set(false)
-        signPublications.set(true)
+        enabled = true
+        automaticRelease = false
+        signPublications = true
     }
 }
 ```
@@ -203,3 +207,9 @@ publish:gitlab:
 Store `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `GPG_PRIVATE_KEY`,
 `GPG_KEY_ID`, and `GPG_KEY_PASSWORD` as **masked CI/CD variables** in your GitLab
 project settings under **Settings → CI/CD → Variables**.
+
+<seealso>
+    <category ref="project">
+        <a href="Publishing-Overview.md">Overview</a>
+    </category>
+</seealso>

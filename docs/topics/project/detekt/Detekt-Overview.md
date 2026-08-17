@@ -1,5 +1,14 @@
 # Detekt Static Analysis
 
+<link-summary>Wiring Detekt into your build through Kreate.</link-summary>
+
+<card-summary>Static analysis configured from one place, with reports in every format.</card-summary>
+
+<tldr>
+<p><b>Enable</b>: <code>project { detekt { enabled = true } }</code></p>
+<p><b>Requires</b>: the <code>dev.detekt</code> plugin applied by you</p>
+</tldr>
+
 Detekt is a static code analysis tool for the Kotlin programming language. It operates on the abstract syntax tree provided by the Kotlin compiler and focuses on finding code smells, complexity issues, and potential bugs.
 
 The `detekt { }` block inside `kreate { project { } }` provides a deeply integrated configuration for Detekt. Kreate automates the setup of the Detekt Gradle plugin, manages rule-set application, and configures reporting with professional defaults tailored for Kotlin development.
@@ -12,7 +21,7 @@ Detekt is **disabled by default**. To activate it, set the `enabled` property to
 kreate {
     project {
         detekt {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -28,7 +37,7 @@ plugins {
 kreate {
     project {
         detekt {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -52,9 +61,10 @@ Static analysis helps maintain a high-quality codebase by:
 
 
 
-## Further Reading
 
-To learn more about how to customize Detekt in your Kreate project, check out the following pages:
-
-- [**Detekt Configuration**](Detekt-Configuration.md): Detailed reference of all core configuration properties.
-- [**Detekt Reports**](Detekt-Reports.md): Learn how to configure and customize analysis reports.
+<seealso>
+    <category ref="project">
+        <a href="Detekt-Configuration.md">Configuration</a>
+        <a href="Detekt-Reports.md">Reports</a>
+    </category>
+</seealso>

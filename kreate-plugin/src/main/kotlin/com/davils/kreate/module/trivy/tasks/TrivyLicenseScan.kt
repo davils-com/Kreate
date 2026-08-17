@@ -89,7 +89,7 @@ public abstract class TrivyLicenseScan @Inject constructor(
      * @since 1.2.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         if (lockFiles.isEmpty) {
             logger.lifecycle("No lock files found. Skipping license scan. Run 'gradle dependencies --write-locks'.")
             return

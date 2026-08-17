@@ -17,6 +17,7 @@
 package com.davils.kreate.module.project.constants
 
 import com.davils.kreate.KreateExtension
+import com.davils.kreate.KreateTasks
 import com.davils.kreate.jobs.Task
 import com.davils.kreate.jobs.executeTaskBeforeCompile
 import com.squareup.kotlinpoet.FileSpec
@@ -47,7 +48,7 @@ import java.time.format.DateTimeFormatter
 @DisableCachingByDefault(because = "Generated constants include a timestamp and depend on project properties")
 public abstract class GenerateBuildConstantsTask : Task(
     "Generates build constants as a Kotlin file.",
-    "kreate build-constants"
+    KreateTasks.BUILD_CONSTANTS_GROUP
 ) {
     /**
      * The map of properties to generate as constants.
@@ -90,7 +91,7 @@ public abstract class GenerateBuildConstantsTask : Task(
      * @since 1.0.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         val props = properties.get()
         if (props.isEmpty()) {
             logger.warn("No properties found for build constants.")
@@ -177,7 +178,7 @@ internal fun Project.registerBuildConstantsTask(extension: KreateExtension) {
     val constantsDir = layout.buildDirectory.dir(constantsPath).get().asFile
     addBuildConstantsToSourceSets(constantsDir.absolutePath)
 
-    val task = tasks.register("kreate-build-constants", GenerateBuildConstantsTask::class.java) {
+    val task = tasks.register(KreateTasks.BUILD_CONSTANTS, GenerateBuildConstantsTask::class.java) {
         properties.set(buildConstants.getConstants())
         packageName.set(resolvedPackageName)
         this.className.set(className)
@@ -185,7 +186,7 @@ internal fun Project.registerBuildConstantsTask(extension: KreateExtension) {
         file.set(outputFile)
     }
 
-    executeTaskBeforeCompile(task.get())
+    executeTaskBeforeCompile(task)
 }
 
 private fun Project.resolvePackageName(extension: KreateExtension): String {
@@ -196,5 +197,5 @@ private fun Project.resolvePackageName(extension: KreateExtension): String {
     }
 
     val resolvedName = if (extension.project.name.isPresent) extension.project.name.get() else project.name
-    return "${group}.${resolvedName}.build".lowercase().replace(oldValue = " ", newValue = "")
+    return "$group.$resolvedName.build".lowercase().replace(oldValue = " ", newValue = "")
 }

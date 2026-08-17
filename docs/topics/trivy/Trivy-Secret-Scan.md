@@ -1,5 +1,9 @@
 # Secret Scanning
 
+<link-summary>Finding hard-coded credentials in your sources.</link-summary>
+
+<card-summary>Built-in and custom rules for detecting leaked secrets.</card-summary>
+
 Secret scanning helps you detect accidentally hardcoded credentials, such as API keys, OAuth tokens, and passwords, before they are leaked or committed to version control.
 
 ## Overview
@@ -11,13 +15,13 @@ Unlike license or vulnerability scans that focus on external dependencies, secre
 ```kotlin
 kreate {
     trivy {
-        enabled.set(true)
+        enabled = true
         secrets {
             // Fail the build if any secrets are found
-            failOnFindings.set(true)
+            failOnFindings = true
 
             // Define which severities should be reported
-            severity.set(listOf(SecretSeverity.CRITICAL, SecretSeverity.HIGH))
+            severity = listOf(SecretSeverity.CRITICAL, SecretSeverity.HIGH)
 
             // Define which files to scan
             sourceFiles.from(fileTree(projectDir) {
@@ -26,7 +30,7 @@ kreate {
             })
 
             // Path to a custom Trivy secret configuration
-            secretConfig.set(rootProject.layout.projectDirectory.file("trivy-secret.yaml"))
+            secretConfig = rootProject.layout.projectDirectory.file("trivy-secret.yaml")
         }
     }
 }
@@ -50,7 +54,7 @@ secrets:
 
 ## How it Works
 
-The `trivySecretScan` task runs Trivy in `fs` (file system) mode with the `secret` scanner enabled. It specifically targets the files defined in `sourceFiles`.
+The `kreateTrivySecretScan` task runs Trivy in `fs` (file system) mode with the `secret` scanner enabled. It specifically targets the files defined in `sourceFiles`.
 
 ### Severity Levels
 
@@ -84,7 +88,7 @@ Use the <code>exclude</code> block in the <code>fileTree</code> of <code>sourceF
 To execute the secret scan individually, use the following Gradle command:
 
 <code-block lang="bash">
-./gradlew trivySecretScan
+./gradlew kreateTrivySecretScan
 </code-block>
 
 Alternatively, the scan is automatically included when running the lifecycle task:
@@ -92,3 +96,10 @@ Alternatively, the scan is automatically included when running the lifecycle tas
 <code-block lang="bash">
 ./gradlew check
 </code-block>
+
+<seealso>
+    <category ref="security">
+        <a href="Trivy-Overview.md">Security and compliance</a>
+        <a href="Trivy-Configuration-Reference.md">Configuration reference</a>
+    </category>
+</seealso>

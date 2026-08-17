@@ -1,5 +1,9 @@
 # Java Version
 
+<link-summary>Setting the Java toolchain and bytecode target.</link-summary>
+
+<card-summary>One property that keeps Kotlin and Java toolchains in agreement.</card-summary>
+
 The `javaVersion` property in the `platform` block controls the Java toolchain version used for compilation
 across all modules in your project.
 
@@ -44,3 +48,11 @@ Any `JavaVersion` enum value from Gradle's API is accepted. Kreate is tested aga
 For libraries published to Maven Central, Java 21 (LTS) is the recommended minimum target
 to maximize compatibility with downstream consumers.
 </tip>
+
+<seealso>
+    <category ref="platform">
+        <a href="Platform-Overview.md">Platform configuration</a>
+        <a href="Platform-Explicit-API.md">Explicit API mode</a>
+        <a href="Platform-Warning-As-Errors.md">Warnings as errors</a>
+    </category>
+</seealso>

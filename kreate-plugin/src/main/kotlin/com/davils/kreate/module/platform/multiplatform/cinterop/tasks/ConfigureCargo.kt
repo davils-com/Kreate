@@ -18,10 +18,9 @@ package com.davils.kreate.module.platform.multiplatform.cinterop.tasks
 
 import com.davils.kreate.jobs.Task
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
@@ -41,14 +40,29 @@ public abstract class ConfigureCargo : Task(
     "kreate c-interoperation"
 ) {
     /**
-     * The working directory containing the `Cargo.toml` file.
+     * The native project directory the task writes into.
+     *
+     * Deliberately not an input: this directory <i>contains</i> the task's own output, so
+     * declaring it as an input would nest the output inside the input and make Gradle's
+     * up-to-date check meaningless. What the task actually reads is declared separately.
+     *
      * @since 1.0.0
      */
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Internal
     public abstract val workDir: DirectoryProperty
 
-    private val extendedCargoContent: String
+    /**
+     * The manifest section this task appends to `Cargo.toml`.
+     *
+     * Exposed as a task input rather than kept private so that Gradle regenerates the manifest
+     * when the template changes — for example after a Kreate upgrade. Without an input, a task
+     * that has outputs is considered up to date for as long as those outputs are untouched, and
+     * the improved template would never reach an existing project.
+     *
+     * @since 2.0.0
+     */
+    @get:Input
+    public val extendedCargoContent: String
         get() = """
             [lib]
             crate-type = ["staticlib"]
@@ -68,7 +82,7 @@ public abstract class ConfigureCargo : Task(
      * @since 1.0.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         val cargoToml = workDir.get().asFile.resolve(CARGO_TOML_FILE_NAME)
         if (!isValidCargoToml(cargoToml)) {
             return

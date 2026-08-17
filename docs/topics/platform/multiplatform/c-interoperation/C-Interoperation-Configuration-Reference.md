@@ -1,5 +1,9 @@
 # Configuration Reference
 
+<link-summary>Every property in the cInterop block.</link-summary>
+
+<card-summary>Language, targets, naming, and definition files.</card-summary>
+
 The `cInterop { }` block exposes the `CInteropExtension`, which controls all aspects of the
 pipeline.
 
@@ -50,8 +54,8 @@ The `language` property selects which native toolchain backs the interop. It acc
 import com.davils.kreate.module.platform.multiplatform.cinterop.NativeLanguage
 
 cInterop {
-    enabled.set(true)
-    language.set(NativeLanguage.CPP) // RUST (default), C, or CPP
+    enabled = true
+    language = NativeLanguage.CPP // RUST (default), C, or CPP
 }
 ```
 
@@ -68,10 +72,10 @@ The `defFile { }` sub-block configures the `.def` file generated for Kotlin/Nati
 
 ```kotlin
 cInterop {
-    enabled.set(true)
+    enabled = true
     defFile {
-        fileName.set("cinterop.def")   // default: "cinterop.def"
-        dirName.set("defs")            // default: "defs"
+        fileName = "cinterop.def"   // default: "cinterop.def"
+        dirName = "defs"            // default: "defs"
     }
 }
 ```
@@ -89,7 +93,7 @@ and are executed after Kreate wires the C-Interop compilation:
 
 ```kotlin
 cInterop {
-    enabled.set(true)
+    enabled = true
     mingw {
         // KotlinNativeTarget configuration for mingwX64
         binaries.sharedLib()
@@ -152,3 +156,10 @@ fn main() {
 
 This script runs automatically during `cargo build` and produces the C header consumed by the
 `.def` file.
+
+<seealso>
+    <category ref="native">
+        <a href="C-Interoperation-Overview.md">Overview</a>
+        <a href="C-Interoperation-Examples.md">Examples</a>
+    </category>
+</seealso>

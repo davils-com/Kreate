@@ -1,0 +1,35 @@
+name: Feature request
+description: Propose a concrete addition to Kreate.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What is hard or impossible today. Describe the situation, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed DSL
+      description: How you would want to configure this in the `kreate { }` block.
+      render: kotlin
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do instead today
+      description: The workaround you currently use, and why it is not good enough.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: Compatibility
+      options:
+        - label: This would change existing behaviour or an existing DSL property.

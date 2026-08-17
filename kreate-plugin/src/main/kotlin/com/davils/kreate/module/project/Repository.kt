@@ -19,13 +19,20 @@ package com.davils.kreate.module.project
 import org.gradle.api.Project
 
 /**
- * Adds default repositories to the project.
+ * Adds the default repositories to the project, when the consumer opted in.
  *
- * This includes Maven Central, Gradle Plugin Portal, and Google.
+ * Repositories are deliberately not added by default. A build that resolves through an
+ * internal mirror declares its repositories centrally in settings and often forbids
+ * project-level ones outright; silently adding Maven Central there either warns, fails, or
+ * — worst of all — bypasses the mirror without anyone noticing.
  *
+ * @param projectExtension The project configuration extension.
+ * @return Unit
  * @since 1.0.0
  */
-internal fun Project.addRepositories() {
+internal fun Project.addRepositories(projectExtension: ProjectExtension) {
+    if (!projectExtension.applyDefaultRepositories.get()) return
+
     repositories.apply {
         mavenCentral()
         gradlePluginPortal()

@@ -18,13 +18,18 @@ package com.davils.kreate.module.platform.multiplatform.cinterop.tasks
 
 import com.davils.kreate.jobs.Task
 import com.davils.kreate.module.platform.jvm.jni.resolveCmakeCommand
+import com.davils.kreate.tooling.runExternalTool
 import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
@@ -59,6 +64,20 @@ public abstract class CompileNative @Inject constructor(
     public abstract val workDir: DirectoryProperty
 
     /**
+     * The native sources the build compiles.
+     *
+     * Declared so that Gradle re-runs the compilation when they change. A task that declares
+     * outputs but no relevant inputs is considered up to date as long as its outputs are
+     * untouched, which would leave an edited source file silently uncompiled and the previous
+     * binary in place while the build reported success.
+     *
+     * @since 2.0.0
+     */
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    public abstract val nativeSources: ConfigurableFileCollection
+
+    /**
      * The CMake build type. Defaults to `Release`.
      * @since 1.3.0
      */
@@ -82,7 +101,7 @@ public abstract class CompileNative @Inject constructor(
      * @since 1.3.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         val projectRoot = workDir.get().asFile
         val buildDir = outputDir
         if (!buildDir.exists() && !buildDir.mkdirs()) {
@@ -92,18 +111,20 @@ public abstract class CompileNative @Inject constructor(
         val type = buildType.orNull ?: "Release"
         val cmakeCmd = resolveCmakeCommand()
 
-        try {
-            exec.exec {
-                workingDir = projectRoot
-                commandLine(cmakeCmd, "-S", ".", "-B", buildDir.absolutePath, "-DCMAKE_BUILD_TYPE=$type")
-            }
-            exec.exec {
-                workingDir = projectRoot
-                commandLine(cmakeCmd, "--build", buildDir.absolutePath, "--config", type)
-            }
-        } catch (_: Exception) {
-            throw GradleException("Failed to compile native C/C++ library.")
-        }
+        runExternalTool(
+            exec = exec,
+            logger = logger,
+            description = "CMake configure",
+            workingDirectory = projectRoot,
+            arguments = listOf(cmakeCmd, "-S", ".", "-B", buildDir.absolutePath, "-DCMAKE_BUILD_TYPE=$type")
+        )
+        runExternalTool(
+            exec = exec,
+            logger = logger,
+            description = "CMake build",
+            workingDirectory = projectRoot,
+            arguments = listOf(cmakeCmd, "--build", buildDir.absolutePath, "--config", type)
+        )
     }
 
     /**

@@ -1,5 +1,14 @@
 # Testing
 
+<link-summary>Test execution, logging, and reporting.</link-summary>
+
+<card-summary>Parallel execution and readable output, configured once.</card-summary>
+
+<tldr>
+<p><b>Default</b>: enabled</p>
+<p><b>Configures</b>: parallel execution, logging, and HTML/XML reports</p>
+</tldr>
+
 The `tests { }` block inside `kreate { project { } }` provides a unified, opinionated testing
 configuration for both Kotlin JVM and Kotlin Multiplatform projects. When enabled, Kreate
 automatically configures all test tasks with sensible defaults for parallelism, timeouts,
@@ -11,7 +20,7 @@ Testing is **disabled by default**. Enable it with:
 kreate {
     project {
         tests {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -46,8 +55,11 @@ When `enabled` is `true`, Kreate applies the following to every matching test ta
 For Kotlin Multiplatform projects, both `Test` tasks (JVM target) and `KotlinTest` tasks
 (native/JS targets) are configured independently.
 
-## Next Steps
 
-- **[Configuration Reference](Testing-Configuration-Reference.md)**: Detailed DSL options for parallelism and logging
-- **[Kotlin Multiplatform Testing](Testing-Multiplatfrom.md)**: Platform-specific considerations for KMP
-- **[Examples](Testing-Example.md)**: Practical testing scenarios and configurations
+<seealso>
+    <category ref="project">
+        <a href="Testing-Configuration-Reference.md">Configuration reference</a>
+        <a href="Testing-Multiplatfrom.md">Multiplatform testing</a>
+        <a href="Testing-Example.md">Examples</a>
+    </category>
+</seealso>

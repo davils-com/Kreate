@@ -1,5 +1,9 @@
 # Examples
 
+<link-summary>Worked examples of generated build constants.</link-summary>
+
+<card-summary>Common patterns for versioning, feature flags, and endpoints.</card-summary>
+
 ## Minimal Setup
 
 Enable build constants with the project version embedded:
@@ -11,7 +15,7 @@ kreate {
         projectGroup = group.toString()
 
         buildConstant {
-            enabled.set(true)
+            enabled = true
             constant("version", project.version)
         }
     }
@@ -32,7 +36,7 @@ Register any number of constants in a single block:
 
 ```kotlin
 buildConstant {
-    enabled.set(true)
+    enabled = true
     constant("version", project.version)
     constant("name", project.name)
     constant("group", project.group)
@@ -47,9 +51,9 @@ Override the defaults for full control over the generated type:
 
 ```kotlin
 buildConstant {
-    enabled.set(true)
-    className.set("AppInfo")
-    packageNameOverride.set("com.davils.app.meta")
+    enabled = true
+    className = "AppInfo"
+    packageNameOverride = "com.davils.app.meta"
     constant("version", project.version)
 }
 ```
@@ -68,8 +72,8 @@ Place the generated sources in a non-default directory inside `build/`:
 
 ```kotlin
 buildConstant {
-    enabled.set(true)
-    path.set("generated/kreate")
+    enabled = true
+    path = "generated/kreate"
     constant("version", project.version)
 }
 ```
@@ -78,7 +82,7 @@ The source set is still wired automatically — no manual `srcDir` call is neede
 
 ## Using Constants in Code
 
-After the `kreate-build-constants` task runs (automatically before compilation), import
+After the `kreateBuildConstants` task runs (automatically before compilation), import
 the generated object:
 
 ```kotlin
@@ -92,3 +96,10 @@ fun printBuildInfo() {
 
 For Kotlin Multiplatform, the class is available in `commonMain` and all its dependant
 source sets (`jvmMain`, `nativeMain`, etc.) without additional setup.
+
+<seealso>
+    <category ref="project">
+        <a href="Constants-Overview.md">Overview</a>
+        <a href="Constans-Configuration.md">Configuration</a>
+    </category>
+</seealso>

@@ -3,12 +3,17 @@
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
 
 <instance-profile id="d"
-                 name="Kreate"
-                 start-page="Overview.md">
+                  name="Kreate"
+                  start-page="Home.topic">
 
+    <toc-element topic="Home.topic"/>
     <toc-element topic="Overview.md"/>
     <toc-element topic="Getting-Started.md"/>
+    <toc-element topic="Compatibility.md"/>
+    <toc-element topic="Task-Reference.md"/>
+
     <toc-element toc-title="Platform">
+        <toc-element topic="Platform-Overview.md"/>
         <toc-element topic="Platform-Java-Version.md"/>
         <toc-element topic="Platform-Explicit-API.md"/>
         <toc-element topic="Platform-Warning-As-Errors.md"/>
@@ -18,31 +23,36 @@
                 <toc-element topic="JNI-Configuration.md"/>
                 <toc-element topic="JNI-Scaffolding.md"/>
                 <toc-element topic="JNI-Build-Pipeline.md"/>
+                <toc-element topic="JNI-Headers.md"/>
+                <toc-element topic="JNI-Packaging.md"/>
+                <toc-element topic="JNI-Troubleshooting.md"/>
             </toc-element>
         </toc-element>
         <toc-element toc-title="Multiplatform">
-            <toc-element toc-title="C-Interopration">
+            <toc-element toc-title="C-interop">
                 <toc-element topic="C-Interoperation-Overview.md"/>
                 <toc-element topic="C-Interoperation-Configuration-Reference.md"/>
                 <toc-element topic="C-Interoperation-Gradle-Task.md"/>
-                <toc-element topic="C-Interoperation-Troubleshooting.md"/>
                 <toc-element topic="C-Interoperation-Examples.md"/>
+                <toc-element topic="C-Interoperation-Troubleshooting.md"/>
             </toc-element>
         </toc-element>
     </toc-element>
-    <toc-element toc-title="Security &amp; Compliance (Trivy)">
+
+    <toc-element toc-title="Security &amp; compliance">
         <toc-element topic="Trivy-Overview.md"/>
-        <toc-element topic="Trivy-License-Scan.md"/>
         <toc-element topic="Trivy-Vulnerability-Scan.md"/>
+        <toc-element topic="Trivy-License-Scan.md"/>
         <toc-element topic="Trivy-Secret-Scan.md"/>
         <toc-element topic="Trivy-Configuration-Reference.md"/>
     </toc-element>
+
     <toc-element toc-title="Project">
         <toc-element topic="Project-Metadata.md"/>
         <toc-element topic="Project-Version-Resolution.md"/>
-        <toc-element toc-title="Build Constants">
-            <toc-element topic="Constants-Overview.md">
-            </toc-element>
+        <toc-element topic="Project-Repositories.md"/>
+        <toc-element toc-title="Build constants">
+            <toc-element topic="Constants-Overview.md"/>
             <toc-element topic="Constans-Configuration.md"/>
             <toc-element topic="Constants-Examples.md"/>
         </toc-element>
@@ -70,4 +80,9 @@
             <toc-element topic="Publishing-Examples.md"/>
         </toc-element>
     </toc-element>
+
+    <toc-element toc-title="Operations">
+        <toc-element topic="CI-Integration.md"/>
+    </toc-element>
+
 </instance-profile>

@@ -47,10 +47,12 @@ internal object ProjectModule : Module {
     }
 
     private fun Project.configureCommon(extension: KreateExtension) {
-        applyDefaultGradlePlugins()
-        addRepositories()
-
         afterEvaluate {
+            // Both of these are opt-in as of 2.0.0, so they have to be evaluated after the
+            // consumer's `kreate { }` block has been applied rather than at apply time.
+            applyDefaultGradlePlugins(extension.project)
+            addRepositories(extension.project)
+
             configureVersion(
                 env = extension.project.version.environment.get(),
                 prop = extension.project.version.property.get()

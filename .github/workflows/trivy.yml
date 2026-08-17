@@ -1,0 +1,152 @@
+name: Trivy
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # A dependency that was clean yesterday can have a CVE today, so scan on a schedule
+    # and not only when someone happens to push.
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: trivy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  scan:
+    name: Repository scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Scan for vulnerabilities and misconfigurations
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scanners: vuln,misconfig
+          format: sarif
+          output: trivy-vuln.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+          # Reporting only; the job's verdict comes from the gate step below, so that a
+          # newly disclosed CVE never silently swallows the SARIF upload.
+          exit-code: '0'
+
+      - name: Upload vulnerability SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@c16c0f3f2812ec4bb3750a5ed64873fe2ce0fbef # codeql-bundle-v2.26.3
+        with:
+          sarif_file: trivy-vuln.sarif
+          category: trivy-vuln
+
+      - name: Scan for hard-coded secrets
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scanners: secret
+          # The same custom rules the plugin's own trivy DSL points at, so a secret that
+          # CI would catch is also caught by a developer running the Gradle task locally.
+          trivy-config: trivy-secret.yaml
+          format: sarif
+          output: trivy-secret.sarif
+          exit-code: '0'
+
+      - name: Upload secret SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@c16c0f3f2812ec4bb3750a5ed64873fe2ce0fbef # codeql-bundle-v2.26.3
+        with:
+          sarif_file: trivy-secret.sarif
+          category: trivy-secret
+
+      # A leaked credential is not a "review later" finding; it fails the build immediately.
+      - name: Fail on secrets or critical vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret
+          trivy-config: trivy-secret.yaml
+          format: table
+          severity: CRITICAL
+          exit-code: '1'
+
+  sbom:
+    name: SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Generate a CycloneDX SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          format: cyclonedx
+          output: sbom.cdx.json
+          exit-code: '0'
+
+      - name: Upload the SBOM
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom
+          path: sbom.cdx.json
+          retention-days: 90
+
+  dogfood:
+    name: Kreate's own Trivy tasks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          validate-wrappers: true
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+            | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" \
+            | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+          trivy --version
+
+      # The plugin's scan tasks consume dependency lock files, so they have to exist first.
+      - name: Write dependency locks
+        run: ./gradlew :example:dependencies --write-locks --stacktrace
+
+      # Runs the feature Kreate ships, not a third-party action. If the plugin's own Trivy
+      # integration breaks, this job is what notices.
+      - name: Run the plugin's Trivy tasks
+        run: ./gradlew :example:kreateTrivyScan --stacktrace

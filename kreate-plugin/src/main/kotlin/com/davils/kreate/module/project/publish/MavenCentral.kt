@@ -19,6 +19,7 @@ package com.davils.kreate.module.project.publish
 import com.davils.kreate.KreateExtension
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import com.vanniktech.maven.publish.MavenPublishBasePlugin
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 /**
@@ -44,7 +45,21 @@ internal fun Project.configureMavenCentral(
     val projectGroup = project.group.toString()
 
     if (!plugins.hasPlugin(MavenPublishBasePlugin::class.java)) {
-        error("Maven Publish Base Plugin not applied. Do it yourself: 'com.vanniktech.maven.publish'")
+        throw GradleException(
+            """
+                Kreate's Maven Central publishing is enabled, but the Maven Publish plugin is
+                not applied to project '$path'.
+
+                Add it to your build script:
+
+                    plugins {
+                        id("com.vanniktech.maven.publish") version "<version>"
+                    }
+
+                Or disable it with
+                `kreate { project { publish { repositories { mavenCentral { enabled = false } } } } }`.
+            """.trimIndent()
+        )
     }
 
     extensions.configure<MavenPublishBaseExtension>("mavenPublishing") {

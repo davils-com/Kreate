@@ -1,5 +1,9 @@
 # Explicit API Mode
 
+<link-summary>Enforcing explicit visibility and return types.</link-summary>
+
+<card-summary>Why a published library should compile in explicit API mode.</card-summary>
+
 The `explicitApi` property enables Kotlin's
 [Explicit API mode](https://kotlinlang.org/docs/whatsnew14.html#explicit-api-mode-for-library-authors),
 which enforces visibility modifiers and return type declarations on all public API members.
@@ -54,3 +58,10 @@ as it prevents accidental exposure of internal implementation details.
 For application modules or integration test modules where a public API surface is not a concern,
 set <code>explicitApi = false</code> to reduce boilerplate.
 </note>
+
+<seealso>
+    <category ref="platform">
+        <a href="Platform-Overview.md">Platform configuration</a>
+        <a href="Platform-Java-Version.md">Java version</a>
+    </category>
+</seealso>

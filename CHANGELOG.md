@@ -5,6 +5,157 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.0.0
+
+A release focused on correctness. The JNI pipeline was rebuilt around a set of reproducible
+defects, the plugin gained its first test suite, and several defaults that were hostile to
+enterprise builds were made opt-in.
+
+### Added
+
+- **JNI header generation**: The new `kreateJniHeaders` task reads the compiled classes, finds every
+  method with the `ACC_NATIVE` flag, and emits the exact C declarations the JVM will look up —
+  correct mangling, correct types, and long-form disambiguation for overloads. Kotlin has no
+  `javac -h` equivalent, so JNI signatures previously had to be transcribed by hand, where a single
+  wrong character compiled cleanly on both sides and failed at runtime with `UnsatisfiedLinkError`.
+  Enabled by default via `jni { headers { } }`.
+- **Native packaging**: `jni { packaging { } }` places the built shared library into the JAR under
+  `natives/<os>-<arch>/` and generates a `KreateNativeLoader` object into your sources. The loader
+  tries `System.loadLibrary` first and falls back to extracting the packaged copy, so a published
+  artifact works without the consumer configuring `java.library.path`.
+- **JNI toolchain configuration**: `buildType`, `cmakeExecutable`, and `generator` are now
+  configurable rather than fixed.
+- **`kreateJniConfigure`**: The CMake configure step is a task of its own, so an ordinary C++ edit
+  no longer re-runs the generator.
+- **`KreateTasks`**: Every task name the plugin registers is declared in one place and documented.
+- **Test suite**: 77 tests where there were none — unit tests for the mangling, naming, version and
+  toolchain resolution logic, and TestKit functional tests that drive real Gradle builds, including
+  the native pipeline end to end.
+- **Gradle compatibility matrix**: The functional suite runs against the declared minimum Gradle
+  version and the current one, so the supported range is verified rather than asserted.
+- **Binary compatibility validation**: The public DSL is covered by a checked-in API dump; a change
+  to any public declaration fails the build until it is recorded.
+- **CI**: Workflows for a three-platform, three-JDK build matrix, Detekt with SARIF upload, Trivy
+  scanning with SBOM generation, and a reproducible-build check. All actions are pinned to commit
+  SHAs and every job declares minimal permissions.
+- **Repository hygiene**: `SECURITY.md`, `CODEOWNERS`, and pull request and issue templates.
+
+### Fixed
+
+- **JNI: stale shared libraries**. `kreateJniBuild` declared outputs but no relevant inputs, so
+  Gradle considered it up to date indefinitely — edits to C++ sources produced no rebuild and the
+  JVM kept loading the previous binary while the build reported success. All native sources,
+  generated headers, and the CMake cache are now declared inputs.
+- **JNI: unrecoverable CMake cache errors**. The CMake build directory lived inside the source tree,
+  so it travelled with the sources. Renaming, moving, or checking the project out at a different
+  path produced `CMake Error: The current CMakeCache.txt directory ... is different ...`, which
+  `gradle clean` could not repair because it never reached in there. Build output now lives under
+  `build/jni/<os>-<arch>/`, and the absolute paths CMake binds to are a declared task input, so a
+  relocated project reconfigures automatically.
+- **JNI: wrong JDK**. `find_package(JNI)` resolved against whatever JDK the machine defaulted to
+  rather than the Gradle toolchain, silently compiling native code against different headers than
+  the Kotlin code targeted. The toolchain JDK is now passed to CMake explicitly.
+- **JNI: artifacts missing on Windows and macOS**. Multi-configuration generators append the
+  configuration name to the output path, so the library landed in `lib/Release/` while
+  `java.library.path` pointed at `lib/`. The per-configuration output directories are now pinned.
+- **JNI: new source files ignored**. The generated `CMakeLists.txt` globbed without
+  `CONFIGURE_DEPENDS`, so a source file added after the first configure was never compiled.
+- **JNI: swallowed build failures**. Only the exception message survived a failed CMake invocation.
+  The full command, working directory, `JAVA_HOME`, and complete compiler output are now included.
+- **JNI in multiplatform projects**: the native build was hooked into every Kotlin compilation task,
+  including Kotlin/Native and Kotlin/JS targets, contradicting the documented behaviour. It is now
+  wired only where the library is actually needed.
+- **Overlapping task inputs and outputs**: `InitializeCppProject` declared the parent directory as
+  an input and a directory inside it as an output, making its up-to-date check meaningless.
+- **Configuration-time side effects**: directories were created while the build was being
+  configured, which did not happen at all on a configuration cache hit.
+- **Eager task realization**: `executeTaskBeforeCompile` called `.get()` on a `TaskProvider` and
+  `tasks.contains(...)`, defeating configuration avoidance.
+- **C-interop: stale native libraries**. `kreateCInteropCompile` declared outputs but no source
+  inputs, so an edited Rust or C++ file produced no rebuild — the same defect as the JNI build task.
+  The native sources are now declared inputs.
+- **C-interop: overlapping task inputs and outputs**. Every task in the pipeline declared the
+  native project directory as an input while writing its output into that same directory, which
+  made their up-to-date checks meaningless. The directories are now internal and each task
+  declares what it actually reads.
+- **C-interop: swallowed build failures**. `CompileNative` and `CompileRust` caught every
+  exception and replaced it with a generic message, discarding the Cargo or compiler diagnostic
+  entirely. Both now use the shared process runner, which attaches the full command, working
+  directory, and output to the failure.
+- **C-interop: `ConfigureCargo` could never regenerate**. After the input/output overlap was
+  removed it had no inputs at all, which would have left an existing project pinned to the
+  manifest template of the Kreate version that first generated it. The template is now a declared
+  input.
+- **Executable resolution**: CMake, Cargo, and Trivy were each resolved by separate logic that
+  searched conventional install directories on macOS only. A single resolver now searches the
+  `PATH` first — including Windows executable extensions — then the conventional locations, on
+  every platform.
+
+### Changed
+
+- **Task names are consistent.** The 1.x names followed three conventions at once. All tasks now use
+  the `kreate` prefix, the feature, and the action, in camel case:
+
+  | 1.x                             | 2.0.0                          |
+  |---------------------------------|--------------------------------|
+  | `kreate-jni-initialize`         | `kreateJniInitialize`          |
+  | `kreate-jni-build`              | `kreateJniBuild`               |
+  | `kreate-c-interop-initialize`   | `kreateCInteropInitialize`     |
+  | `kreate-c-interop-dependencies` | `kreateCInteropDependencies`   |
+  | `kreate-c-interop-configure`    | `kreateCInteropConfigure`      |
+  | `kreate-c-interop-script`       | `kreateCInteropScript`         |
+  | `kreate-c-interop-compile`      | `kreateCInteropCompile`        |
+  | `kreate-c-interop-definitions`  | `kreateCInteropDefinitions`    |
+  | `kreate-build-constants`        | `kreateBuildConstants`         |
+  | `trivyScan`                     | `kreateTrivyScan`              |
+  | `trivySecretScan`               | `kreateTrivySecretScan`        |
+  | `trivyLicenseScan`              | `kreateTrivyLicenseScan`       |
+  | `trivyVulnerabilityScan`        | `kreateTrivyVulnerabilityScan` |
+
+- **Repositories are no longer injected.** The plugin added Maven Central, the Gradle Plugin Portal,
+  and Google to every project it was applied to. In a build resolving through an internal mirror
+  that is at best a warning under `repositoriesMode`, and at worst a silent bypass of the mirror.
+  Now opt-in via `project { applyDefaultRepositories = true }`.
+- **The serialization plugin is no longer applied unconditionally.** A compiler plugin participates
+  in every compilation; projects that never serialize anything were paying for it. Now opt-in via
+  `project { applySerializationPlugin = true }`.
+- **The JNI pipeline runs after Kotlin compilation.** Headers are derived from compiled `external`
+  declarations, so the previous ordering made generating them impossible. It also keeps a native
+  build off the critical path of every Kotlin compile; test, run, and packaging tasks depend on the
+  library instead.
+- **Actionable failure messages.** Missing prerequisite plugins now raise a `GradleException` naming
+  the project, the `plugins { }` block to add, and how to disable the integration instead.
+- **The version fallback is logged.** Falling back to `1.0.0` when neither the CI environment
+  variable nor the project property yields a version is now a warning; a release accidentally
+  published as `1.0.0` cannot be withdrawn from a public repository.
+- **`java.library.path` is contributed lazily and additively** through a Gradle argument provider,
+  rather than by rewriting `jvmArgs` at configuration time — which previously discarded any library
+  path the build had configured for its own reasons.
+- **The plugin compiles against Kotlin 2.4.0 and Java 17**, the versions embedded in the minimum
+  supported Gradle. A plugin built against a newer API fails on the consumer's machine at runtime
+  rather than in its own build.
+- **Reproducible archives**: pinned timestamps and file order, verified in CI.
+- **Documentation rewritten**, including new topics on header generation, native packaging, JNI
+  troubleshooting, CI integration, compatibility, and a complete task reference.
+
+### Removed
+
+- **`Process` interface and `Executable` base class.** `Executable` extended `Exec` while also
+  declaring an `execute()` task action, giving it two competing actions. It was never used; the
+  interface forced every task into a `@TaskAction override fun execute()` shape that bought nothing,
+  since Gradle discovers task actions through the annotation.
+- **Internal helpers from the public API**: `initializeJni`, `initializeCInterop`, and
+  `getProjectVersion` are now `internal`.
+
+### Build
+
+- Gradle 9.7.0, Detekt 2.0.0-alpha.6.
+- `buildSrc` replaced by a `build-logic` included build with three convention plugins.
+- Strict plugin validation (`failOnWarning`, `enableStricterValidation`) and
+  `allWarningsAsErrors` for the plugin's own sources.
+- Dependabot now covers the `kreate-plugin` and `build-logic` builds, which as separate Gradle
+  builds were never updated before.
+
 ## 1.3.1
 
 ### Added

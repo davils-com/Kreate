@@ -1,5 +1,9 @@
 # Warnings as Errors
 
+<link-summary>Promoting compiler warnings to errors.</link-summary>
+
+<card-summary>Keep warnings at zero instead of watching them accumulate.</card-summary>
+
 The `allWarningsAsErrors` property instructs the Kotlin compiler to treat every compiler warning
 as a hard error, causing the build to fail if any warnings are present.
 
@@ -41,3 +45,10 @@ main branch pipeline.
 If you are integrating a third-party library that triggers warnings outside your control,
 you can suppress individual warnings with <code>@Suppress("WARNING_NAME")</code> rather than disabling this flag globally.
 </note>
+
+<seealso>
+    <category ref="platform">
+        <a href="Platform-Overview.md">Platform configuration</a>
+        <a href="Platform-Explicit-API.md">Explicit API mode</a>
+    </category>
+</seealso>

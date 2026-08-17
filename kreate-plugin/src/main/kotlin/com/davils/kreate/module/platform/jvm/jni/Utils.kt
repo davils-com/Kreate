@@ -18,8 +18,8 @@ package com.davils.kreate.module.platform.jvm.jni
 
 import com.davils.kreate.KreateExtension
 import com.davils.kreate.module.platform.resolveFeatureProjectName
-import com.davils.kreate.system.OsTarget
-import com.davils.kreate.system.getOs
+import com.davils.kreate.tooling.ExecutableResolver
+import com.davils.kreate.tooling.ExternalTool
 import org.gradle.api.Project
 import java.io.File
 
@@ -56,23 +56,12 @@ internal fun Project.resolveRootDir(jniConfig: JniExtension): File {
 /**
  * Resolves the path to the CMake executable.
  *
- * On macOS the absolute path is searched in common installation locations
- * (Homebrew, CMake.app) because Gradle's `exec` does not inherit the user's
- * interactive shell `PATH` and would otherwise fail to locate `cmake`.
- * On other platforms the bare command name is returned and resolved via `PATH`.
+ * Delegates to the shared [ExecutableResolver], which searches the `PATH` first and falls
+ * back to the conventional installation directories on every platform.
  *
+ * @param override An explicit executable path configured through the JNI DSL, if any.
  * @return The resolved CMake command path or name as a string.
  * @since 1.1.0
  */
-internal fun resolveCmakeCommand(): String {
-    val os by getOs()
-    if (os != OsTarget.MACOS) return "cmake"
-
-    val candidates = listOf(
-        "/opt/homebrew/bin/cmake",
-        "/usr/local/bin/cmake",
-        "/Applications/CMake.app/Contents/bin/cmake",
-        "/usr/bin/cmake"
-    )
-    return candidates.firstOrNull { File(it).canExecute() } ?: "cmake"
-}
+internal fun resolveCmakeCommand(override: String? = null): String =
+    ExecutableResolver.resolve(ExternalTool.CMAKE, override)

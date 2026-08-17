@@ -9,26 +9,31 @@
     <img src="https://img.shields.io/badge/License-Apache_2.0-Redtronics?style=for-the-badge&logo=apache&labelColor=white&color=blue" alt="License">
   </a>
   <a href="https://kotlinlang.org">
-    <img src="https://img.shields.io/badge/Kotlin-2.4.0-Redtronics?style=for-the-badge&logo=kotlin&labelColor=white&color=purple" alt="Kotlin">
+    <img src="https://img.shields.io/badge/Kotlin-2.4-Redtronics?style=for-the-badge&logo=kotlin&labelColor=white&color=purple" alt="Kotlin">
   </a>
   <a href="https://gradle.org">
-    <img src="https://img.shields.io/badge/Gradle-9.6.0-Redtronics?style=for-the-badge&logo=gradle&labelColor=white&color=02303A" alt="Gradle">
+    <img src="https://img.shields.io/badge/Gradle-9.0%2B-Redtronics?style=for-the-badge&logo=gradle&labelColor=white&color=02303A" alt="Gradle">
+  </a>
+  <a href="https://adoptium.net">
+    <img src="https://img.shields.io/badge/JDK-17%2B-Redtronics?style=for-the-badge&logo=openjdk&labelColor=white&color=ED8B00" alt="JDK">
   </a>
 </p>
 
 <p align="center">
-  <strong>Kreate</strong> is an opinionated Gradle helper plugin for building Kotlin Multiplatform (KMP) and JVM projects.
-  It provides a unified DSL to manage platform configurations, native C-Interop (Rust), JNI, security, compliance, code analysis, documentation, testing, and publishing workflows with minimal boilerplate.
+  <strong>Kreate</strong> is an opinionated Gradle plugin for Kotlin JVM and Multiplatform projects.
+  It replaces the platform, native interop, security, testing, documentation and publishing
+  boilerplate that every serious build accumulates with a single declarative DSL.
 </p>
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
+- [Why Kreate](#why-kreate)
 - [Core Features](#core-features)
 - [Quick Start](#quick-start)
 - [Configuration Reference](#configuration-reference)
+- [Compatibility](#compatibility)
 - [Documentation](#documentation)
 - [Third-Party Software](#third-party-software)
 - [Contributing](#contributing)
@@ -36,67 +41,68 @@
 
 ---
 
-## Overview
+## Why Kreate
 
-Managing Kotlin Multiplatform and JVM configurations can be complex. **Kreate** simplifies this by:
+Kreate is a *convention* plugin, not a framework.
 
-*   **Standardizing Platform Setup**: A consistent DSL for JVM, Linux, macOS, and Windows.
-*   **Integrating Native Code**: Automated bridge for Rust, C, and C++ (via C-Interop) and JNI for JVM/Multiplatform.
-*   **Enforcing Quality & Security**: Integrated code analysis (Detekt) and security scanning (Trivy).
-*   **Declarative Infrastructure**: Focus on project requirements while the plugin handles the underlying Gradle configuration.
+- **It does not wrap Gradle.** Your build script stays a Gradle build script, and every task
+  Kreate registers is an ordinary task you can depend on, reconfigure, or disable.
+- **It does not apply plugins behind your back.** Where an integration needs Detekt or the Maven
+  Publish plugin, you apply it and choose its version; Kreate configures it.
+- **It does not touch your repositories or dependency resolution** unless you explicitly ask.
+- **Everything is opt-in.** Applying the plugin on its own registers no tasks and changes no
+  behaviour.
 
 ---
 
 ## Core Features
 
-### Platform Support
-Kreate detects the project type (JVM, Android, or KMP) and applies appropriate optimizations:
-- **JVM Support**: Configures Java 17+ toolchains and compiler options.
-- **Multiplatform DSL**: Unified targets for Linux, macOS, and Windows.
-- **Consistent Toolchains**: Ensures Java and Kotlin versions are synchronized across modules.
+### Platform Configuration
 
-### Security & Quality Compliance
-Integrated tools to ensure enterprise-grade code quality and security:
-- **Trivy Security**: Automated scanning for vulnerabilities, license compliance, and hardcoded secrets.
-- **Detekt Integration**: Static code analysis to enforce clean code architecture and design patterns.
-- **Unified DSL**: Simple `trivy { }` and `detekt { }` blocks for centralized management.
+Kreate reacts to the Kotlin plugin you applied rather than guessing at your project type.
 
-### C-Interoperability (Native)
-Automates the integration of native libraries (Rust, C, C++) into Kotlin Multiplatform:
-- **Multi-Language Support**: Support for Rust (via Cargo), C, and C++ (via CMake).
-- **Toolchain Integration**: Manages `cargo`, `cmake`, and cross-compilation targets.
-- **Project Scaffolding**: Automatically generates project structures for the selected language.
-- **Header Synchronization**: Manages C headers and Kotlin bindings via `.def` files.
-- **Multi-Arch Support**: Targets `x86_64`, `aarch64`, and other native triples.
+- **Toolchain alignment**: one `javaVersion` drives the Kotlin toolchain *and*
+  `sourceCompatibility`/`targetCompatibility`, which is where "works on my machine" bytecode
+  mismatches usually come from.
+- **Compiler policy**: `explicitApi` and `allWarningsAsErrors` applied consistently across modules.
+- **Multiplatform aware**: JVM and Multiplatform projects follow the appropriate configuration path.
 
-### JNI Support (Java Native Interface)
-Simplified integration for native C/C++ code in JVM and Multiplatform (JVM target) projects:
-- **CMake Integration**: Automatically handles CMake-based native builds.
-- **Multiple Include Paths**: Support for configuring multiple external library directories.
-- **KMP Integration**: Seamlessly wires JNI into the JVM target of Multiplatform projects.
-- **Runtime Library Path**: Automatically configures `java.library.path` for testing and execution.
-- **Consistent Layout**: Follows a structured layout for native sources.
+### JNI (C/C++ on the JVM)
 
-### Testing Pipeline
-Pre-configured **Kotest** integration for robust validation:
-- **Parallel Execution**: Scales based on CPU availability.
-- **Standardized Logging**: Clear output for test states (Passed, Skipped, Started).
-- **Automated Reporting**: Generates HTML and XML reports for CI/CD.
+- **Generated headers**: `kreateJniHeaders` reads your compiled classes and emits the exact C
+  declarations the JVM will look up — correct mangling, correct types, overload disambiguation.
+  Kotlin has no `javac -h` equivalent, so this is the only automated way to stop a mistyped symbol
+  from becoming a runtime `UnsatisfiedLinkError`.
+- **Correct CMake builds**: the JDK comes from your Gradle toolchain rather than the machine
+  default, output paths are pinned so multi-configuration generators behave predictably, and the
+  full compiler output is surfaced on failure.
+- **Reliable incremental builds**: every file the native build reads is a declared task input, so a
+  C++ edit rebuilds and an untouched project does not.
+- **Distributable artifacts**: optionally package the shared library into your JAR with a generated
+  loader, so consumers need no `java.library.path` setup.
 
-### Publishing & POM Management
-Standardizes the release process for libraries:
-- **Registry Support**: Built-in configurations for Maven Central and GitLab.
-- **Signing**: Integrated GPG signing for Maven Central requirements.
-- **POM Metadata**: Declarative DSL for licenses, developers, and SCM information.
+### C-Interoperability (Kotlin/Native)
 
----
+- **Multi-language**: Rust via Cargo, C and C++ via CMake.
+- **Automatic scaffolding** of the native project structure for the selected language.
+- **Binding generation**: manages C headers and `.def` files for you.
+- **Multi-architecture**: targets `x86_64`, `aarch64`, and other native triples.
 
-## Documentation
+### Security & Compliance
 
-Detailed documentation for Kreate is available in the following locations:
+- **Vulnerability scanning**: CVEs in dependencies, from Gradle lock files.
+- **Licence compliance**: verify third-party licences against a forbidden list.
+- **Secret detection**: built-in and custom rules for hard-coded credentials.
+- **Platform-agnostic**: the `trivy { }` block works in any project, including ones using no other
+  Kreate feature.
 
-- **[Wiki](https://davils-com.github.io/kreate/overview.html)**: The main entry point for guides and documentation.
-- **[Examples](./example)**: A reference implementation demonstrating various configuration scenarios.
+### Project & Release
+
+- **Build constants**: generate a type-safe Kotlin object from build values.
+- **Testing**: parallel execution, readable logging, and HTML/XML reports.
+- **Documentation**: Dokka configured from the same metadata as your POM.
+- **Publishing**: signed releases to Maven Central and the GitLab Package Registry, with a
+  declarative DSL for licences, developers, and SCM information.
 
 ---
 
@@ -104,46 +110,45 @@ Detailed documentation for Kreate is available in the following locations:
 
 ### Installation
 
-Add the plugin to your `settings.gradle.kts` (recommended) or `build.gradle.kts`.
-
-**Note**: To resolve lifecycle ordering issues, you must manually apply the `maven-publish` and `dev.detekt` plugins if you intend to use publishing or static analysis features.
-
 ```kotlin
-pluginManagement {
+// settings.gradle.kts
+dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        gradlePluginPortal()
     }
-}
-
-plugins {
-    id("com.davils.kreate") version "<latest>"
-    id("maven-publish") // Required for publishing
-    id("dev.detekt") version "2.0.0-alpha.5" // Required for Detekt
 }
 ```
 
+```kotlin
+// build.gradle.kts
+plugins {
+    kotlin("jvm") version "2.4.0"
+    id("com.davils.kreate") version "2.0.0"
+}
+```
+
+> **Note**
+> Kreate configures Detekt and the Maven Publish plugin but does not apply them, so their versions
+> stay under your control. Apply them yourself if you enable those integrations:
+> `id("dev.detekt") version "..."` and `id("com.vanniktech.maven.publish") version "..."`.
+
 ### Configuration
 
-Apply the plugin in your `build.gradle.kts`:
-
 ```kotlin
+group = "com.example"
+
 kreate {
     platform {
         javaVersion = JavaVersion.VERSION_17
         explicitApi = true
+        allWarningsAsErrors = true
 
         jvm {
             jni {
                 enabled = true
-                libraryIncludePaths.add("/usr/local/include/mylib")
-            }
-        }
 
-        multiplatform {
-            cinterop {
-                language = NativeLanguage.CPP // Support for RUST, C, CPP
-                // ... other configs
+                headers { enabled = true }      // generate JNI declarations
+                packaging { enabled = true }    // ship natives inside the JAR
             }
         }
     }
@@ -152,67 +157,111 @@ kreate {
         name = "MyProject"
         description = "A project powered by Kreate"
 
-        detekt {
-            enabled = true
-            allRules = true
+        version {
+            environment = "CI_COMMIT_TAG"
+            property = "version"
         }
 
-        trivy {
+        buildConstant {
             enabled = true
-            vulnerability {
-                failOnFindings = true
-            }
+            className = "BuildConfig"
+            constant("apiUrl", "https://api.example.com")
         }
+    }
 
-        publish {
-            enabled = true
-            repositories {
-                mavenCentral {
-                    enabled = true
-                    automaticRelease = true
-                }
-            }
+    trivy {
+        enabled = true
+
+        vulnerability {
+            failOnFindings = true
+            lockFiles.from(fileTree(projectDir) { include("*.lockfile") })
         }
     }
 }
+```
+
+### Tasks
+
+```bash
+./gradlew tasks --group kreate      # what is registered
+./gradlew kreateJniBuild            # build the native library
+./gradlew kreateTrivyScan           # run all enabled security scans
+./gradlew kreateBuildConstants      # regenerate build constants
 ```
 
 ---
 
 ## Configuration Reference
 
-| Block      | Property              | Description                               | Default      |
-|:-----------|:----------------------|:------------------------------------------|:-------------|
-| `platform` | `javaVersion`         | Target Java version (17, 21, etc.)        | `VERSION_17` |
-| `platform` | `explicitApi`         | Enforces Kotlin Explicit API mode         | `false`      |
-| `platform` | `allWarningsAsErrors` | Treats all compiler warnings as errors    | `true`       |
-| `jvm.jni`  | `enabled`             | Enables JNI support (CMake-based)         | `false`      |
-| `jvm.jni`  | `libraryIncludePaths` | List of additional C++ include paths      | `[]`         |
-| `cinterop` | `language`            | Native language (RUST, C, CPP)            | `RUST`       |
-| `project`  | `detekt`              | Static code analysis configuration        | `Disabled`   |
-| `project`  | `trivy`               | Security & license scanning configuration | `Disabled`   |
-| `project`  | `buildConstant`       | Generate type-safe Kotlin constants       | `Disabled`   |
-| `project`  | `docs`                | Configure Dokka documentation generation  | `Disabled`   |
-| `project`  | `tests`               | Advanced Kotest configuration & reporting | `Enabled`    |
-| `project`  | `publish`             | Maven Central / GitLab publishing setup   | `Disabled`   |
+| Block                             | Property                   | Description                                | Default      |
+|:----------------------------------|:---------------------------|:-------------------------------------------|:-------------|
+| `platform`                        | `javaVersion`              | Java toolchain and bytecode target         | `VERSION_17` |
+| `platform`                        | `explicitApi`              | Kotlin explicit API mode                   | `false`      |
+| `platform`                        | `allWarningsAsErrors`      | Compiler warnings become errors            | `true`       |
+| `platform.jvm.jni`                | `enabled`                  | CMake-based JNI integration                | `false`      |
+| `platform.jvm.jni`                | `buildType`                | CMake build type                           | `Release`    |
+| `platform.jvm.jni`                | `cmakeExecutable`          | Explicit CMake path                        | *resolved*   |
+| `platform.jvm.jni.headers`        | `enabled`                  | Generate JNI headers from compiled classes | `true`       |
+| `platform.jvm.jni.packaging`      | `enabled`                  | Package natives into the JAR               | `false`      |
+| `platform.multiplatform.cInterop` | `enabled`                  | Native interop for Kotlin/Native           | `false`      |
+| `platform.multiplatform.cInterop` | `language`                 | `RUST`, `C`, or `CPP`                      | `RUST`       |
+| `project`                         | `applyDefaultRepositories` | Add public repositories to the project     | `false`      |
+| `project`                         | `applySerializationPlugin` | Apply the serialization compiler plugin    | `false`      |
+| `project.buildConstant`           | `enabled`                  | Generate type-safe Kotlin constants        | `false`      |
+| `project.docs`                    | `enabled`                  | Dokka documentation                        | `false`      |
+| `project.tests`                   | `enabled`                  | Test execution and reporting               | `true`       |
+| `project.detekt`                  | `enabled`                  | Static analysis configuration              | `false`      |
+| `project.publish`                 | `enabled`                  | Maven Central / GitLab publishing          | `false`      |
+| `trivy`                           | `enabled`                  | Security and compliance scanning           | `false`      |
+
+---
+
+## Compatibility
+
+| Component        | Minimum | Verified in CI                     |
+|:-----------------|:--------|:-----------------------------------|
+| Gradle           | 9.0     | 9.0 and the current release        |
+| JDK              | 17      | 17, 21, 25                         |
+| Kotlin           | 2.4.0   | 2.4.0                              |
+| Operating system | —       | Linux, macOS, Windows              |
+| CMake            | 3.20    | Required only for native features  |
+
+Kreate is compiled against the Kotlin and Java versions embedded in the *minimum* supported
+Gradle. A plugin built against a newer API does not fail in its own repository — it fails at
+runtime on a consumer's machine, which is exactly what building against the floor prevents.
+
+---
+
+## Documentation
+
+- **[Documentation site](https://davils-com.github.io/kreate/)**: guides, configuration
+  references, and troubleshooting.
+- **[Example project](./example)**: a working reference covering JNI, C-interop, Trivy, build
+  constants, testing, and publishing.
+- **[Changelog](./CHANGELOG.md)**: what changed in each release.
+- **[Security policy](./SECURITY.md)**: how to report a vulnerability.
 
 ---
 
 ## Third-Party Software
 
-Kreate leverages various open-source technologies. For a full list of libraries and licenses, please refer to the [Third-Party Software](./THIRDPARTY.md) document.
+Kreate leverages various open-source technologies. For a full list of libraries and licenses,
+please refer to the [Third-Party Software](./THIRDPARTY.md) document.
 
 ---
 
 ## Contributing
 
-We welcome all contributions! To maintain quality, please note:
+Contributions are welcome. To keep the quality bar where it is:
 
-- **Documentation**: Changes to API or behavior must be documented.
-- **Tests**: Ensure your changes are covered by tests.
-- **Standards**: Follow the established Kotlin style and project conventions.
+- **Tests**: new or changed behaviour needs a test. The suite drives real Gradle builds through
+  TestKit, so a behavioural change is genuinely verifiable.
+- **Documentation**: API and behaviour changes must be reflected in `docs/topics/`.
+- **Public API**: run `./gradlew apiDump` and commit the result if the DSL changed.
+- **Standards**: follow the KDoc rules in `.junie/AGENTS.md` — every public declaration carries
+  `@param`, `@return`, and `@since`, and Detekt enforces it.
 
-Detailed instructions can be found in our [Contributing Guidelines](CONTRIBUTING.md).
+Detailed instructions are in the [Contributing Guidelines](CONTRIBUTING.md).
 
 ---
 

@@ -5,9 +5,25 @@ updates:
     schedule:
       interval: "daily"
     target-branch: "develop"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "gradle"
+    directory: "/kreate-plugin"
+    schedule:
+      interval: "daily"
+    target-branch: "develop"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "gradle"
+    directory: "/build-logic"
+    schedule:
+      interval: "daily"
+    target-branch: "develop"
+    open-pull-requests-limit: 10
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     target-branch: "develop"
+    open-pull-requests-limit: 10

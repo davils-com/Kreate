@@ -1,47 +1,102 @@
-import com.davils.buildsrc.Project
+/*
+ * Copyright 2026 Davils
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import com.davils.buildlogic.Project
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `kotlin-dsl`
-    `java-gradle-plugin`
-    `kreate-publish`
-    `kreate-code-analysis`
-}
-
-group = Project.Identity.GROUP.lowercase()
-
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
+    id("kreate.kotlin-conventions")
+    id("kreate.quality-conventions")
+    id("kreate.publish-conventions")
 }
 
 dependencies {
     implementation(gradleApi())
     implementation(libs.bundles.kreate.plugin)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(gradleTestKit())
+    testImplementation(libs.bundles.kreate.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
+
+/**
+ * TestKit based tests live in their own source set so that a slow, tool dependent
+ * suite (CMake, Cargo, Trivy) never blocks the fast unit tests.
+ */
+val functionalTest: SourceSet = sourceSets.create("functionalTest")
+
+configurations[functionalTest.implementationConfigurationName]
+    .extendsFrom(configurations.testImplementation.get())
+configurations[functionalTest.runtimeOnlyConfigurationName]
+    .extendsFrom(configurations.testRuntimeOnly.get())
 
 gradlePlugin {
     vcsUrl = Project.VersionControl.SCM_URL
     website = Project.Organization.WEBSITE_URL
 
+    // Injects the plugin under test onto the classpath of the functional tests.
+    testSourceSets(functionalTest)
+
     plugins {
         create(Project.Identity.NAME.lowercase()) {
-            id = "${Project.Identity.GROUP.lowercase()}.${Project.Identity.NAME.lowercase()}"
+            id = "${Project.Identity.GROUP}.${Project.Identity.NAME.lowercase()}"
             description = Project.Identity.DESCRIPTION
             displayName = Project.Identity.NAME
-            implementationClass = "${Project.Identity.GROUP}.${Project.Identity.NAME.lowercase()}.${Project.Identity.NAME}"
-            tags = listOf("creation", "davils", "setup", "compatibility", "constants", "kotlin", "cinterop", "multiplatform")
+            implementationClass =
+                "${Project.Identity.GROUP}.${Project.Identity.NAME.lowercase()}.${Project.Identity.NAME}"
+            tags = listOf(
+                "kotlin",
+                "multiplatform",
+                "jni",
+                "cinterop",
+                "detekt",
+                "trivy",
+                "publishing",
+                "conventions",
+                "davils"
+            )
         }
     }
 }
 
-val targetJavaVersion = JavaVersion.VERSION_17
-java {
-    sourceCompatibility = targetJavaVersion
-    targetCompatibility = targetJavaVersion
-    withSourcesJar()
+val functionalTestTask = tasks.register<Test>("functionalTest") {
+    description = "Runs the TestKit based functional tests against real Gradle builds."
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+
+    testClassesDirs = functionalTest.output.classesDirs
+    classpath = functionalTest.runtimeClasspath
+    useJUnitPlatform()
+
+    systemProperty("kreate.test.gradleVersion", gradle.gradleVersion)
+    systemProperty("kreate.test.minGradleVersion", Project.Compatibility.MIN_GRADLE_VERSION)
+
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
 }
 
-kotlin {
-    explicitApi()
-    jvmToolchain(targetJavaVersion.majorVersion.toInt())
+tasks.test {
+    useJUnitPlatform()
+}
+
+tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME) {
+    dependsOn(functionalTestTask)
+}
+
+tasks.named<KotlinCompile>("compileFunctionalTestKotlin") {
+    compilerOptions.freeCompilerArgs.add("-Xexplicit-api=disable")
 }

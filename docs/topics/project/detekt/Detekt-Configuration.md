@@ -1,5 +1,9 @@
 # Detekt Configuration Reference
 
+<link-summary>Every property in the detekt block.</link-summary>
+
+<card-summary>Config file, rule set behaviour, and baseline.</card-summary>
+
 The `detekt { }` block provides several properties to customize how static analysis is performed. These settings are designed to provide a balance between strictness and flexibility.
 
 ## Configuration Properties
@@ -54,3 +58,10 @@ tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
 Detekt is an essential part of a modern CI/CD pipeline. By enabling `sarif` reports, you can integrate Detekt results directly into GitHub Actions or GitLab CI code quality views.
 
 See [](Detekt-Reports.md) for more details on configuring output formats.
+
+<seealso>
+    <category ref="project">
+        <a href="Detekt-Overview.md">Overview</a>
+        <a href="Detekt-Reports.md">Reports</a>
+    </category>
+</seealso>

@@ -1,5 +1,14 @@
 # Documentation Overview
 
+<link-summary>Generating API documentation with Dokka.</link-summary>
+
+<card-summary>Dokka configured from the same metadata as your POM.</card-summary>
+
+<tldr>
+<p><b>Enable</b>: <code>project { docs { enabled = true } }</code></p>
+<p><b>Produces</b>: Dokka API documentation</p>
+</tldr>
+
 The `docs { }` block inside `kreate { project { } }` integrates
 [Dokka](https://kotl.in/dokka) into your Gradle module. When enabled, Kreate applies the
 Dokka Gradle plugin automatically and configures it with your declared settings — no manual
@@ -11,7 +20,7 @@ Documentation generation is **disabled by default**. Enable it with:
 kreate {
     project {
         docs {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -39,3 +48,10 @@ Dokka's `dokkaGenerate` task produces an HTML site from your KDoc comments. Run 
 
 The output lands in `build/dokka/html/` by default, or in the path you configure via
 `outputDirectory`.
+
+<seealso>
+    <category ref="project">
+        <a href="Documentation-Configuration.md">Configuration</a>
+        <a href="Documentation-Examples.md">Examples</a>
+    </category>
+</seealso>

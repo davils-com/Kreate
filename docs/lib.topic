@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic SYSTEM "https://resources.jetbrains.com/writerside/1.0/xhtml-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
+       title="Library" id="lib">
+
+    <snippet id="apply-plugin">
+        <tabs group="apply">
+            <tab title="Version catalog" group-key="catalog">
+                <code-block lang="toml">
+                    # gradle/libs.versions.toml
+                    [plugins]
+                    kreate = { id = "%plugin_id%", version = "%version%" }
+                </code-block>
+                <code-block lang="kotlin">
+                    // build.gradle.kts
+                    plugins {
+                        alias(libs.plugins.kreate)
+                        kotlin("jvm") version "%kotlin_api%"
+                    }
+                </code-block>
+            </tab>
+            <tab title="Direct" group-key="direct">
+                <code-block lang="kotlin">
+                    // build.gradle.kts
+                    plugins {
+                        id("%plugin_id%") version "%version%"
+                        kotlin("jvm") version "%kotlin_api%"
+                    }
+                </code-block>
+            </tab>
+        </tabs>
+    </snippet>
+
+    <snippet id="opt-in-note">
+        <note>
+            Every feature in %product% is opt-in. Applying the plugin on its own registers no
+            tasks and changes no behaviour — you get exactly what you configure, and nothing
+            appears in <code>gradle tasks</code> that you did not ask for.
+        </note>
+    </snippet>
+
+    <snippet id="native-prerequisites">
+        <deflist type="medium">
+            <def title="CMake">
+                Version %min_cmake% or later, on the <code>PATH</code> or configured explicitly
+                through <code>cmakeExecutable</code>.
+            </def>
+            <def title="C++ compiler">
+                Any C++17 capable toolchain: GCC, Clang, or MSVC.
+            </def>
+            <def title="JDK">
+                Provided by the Gradle toolchain. %product% passes it to CMake explicitly, so
+                the native code is always compiled against the same JDK the Kotlin code targets.
+            </def>
+        </deflist>
+    </snippet>
+
+    <snippet id="config-cache-note">
+        <tip>
+            All %product% tasks are compatible with Gradle's
+            <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">configuration cache</a>.
+            The plugin's own build runs with <code>org.gradle.configuration-cache.problems=fail</code>,
+            so a regression here fails the build rather than degrading your build times quietly.
+        </tip>
+    </snippet>
+
+</topic>

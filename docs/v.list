@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE vars SYSTEM "https://resources.jetbrains.com/writerside/1.0/vars.dtd">
 <vars>
-    <var name="product" value="Writerside"/>
+    <!-- Product identity -->
+    <var name="product" value="Kreate"/>
+    <var name="plugin_id" value="com.davils.kreate"/>
+    <var name="version" value="2.0.0"/>
+
+    <!-- Compatibility. These are the single source of truth for every version stated in
+         the documentation; the same values are asserted by the functional test matrix. -->
+    <var name="min_gradle" value="9.0"/>
+    <var name="min_java" value="17"/>
+    <var name="tested_java" value="17, 21 and 25"/>
+    <var name="kotlin_api" value="2.4.0"/>
+    <var name="min_cmake" value="3.20"/>
+
+    <!-- Links -->
+    <var name="repo" value="https://github.com/davils-com/kreate"/>
+    <var name="issues" value="https://github.com/davils-com/kreate/issues"/>
 </vars>

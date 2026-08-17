@@ -1,5 +1,9 @@
 # Examples
 
+<link-summary>Worked Dokka configuration examples.</link-summary>
+
+<card-summary>Common documentation setups.</card-summary>
+
 ## Minimal Setup
 
 Apply Dokka with no customization. All Dokka defaults apply.
@@ -11,7 +15,7 @@ kreate {
         projectGroup = group.toString()
 
         docs {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -32,9 +36,9 @@ kreate {
         projectGroup = group.toString()
 
         docs {
-            enabled.set(true)
-            moduleName.set("MyLibrary")
-            copyright.set("© 2026 Davils. All rights reserved.")
+            enabled = true
+            moduleName = "MyLibrary"
+            copyright = "© 2026 Davils. All rights reserved."
         }
     }
 }
@@ -50,8 +54,8 @@ Redirect the generated HTML to a dedicated folder for easier publishing:
 kreate {
     project {
         docs {
-            enabled.set(true)
-            outputDirectory.set("docs/api")
+            enabled = true
+            outputDirectory = "docs/api"
         }
     }
 }
@@ -72,11 +76,18 @@ kreate {
         projectGroup = group.toString()
 
         docs {
-            enabled.set(true)
-            moduleName.set("MyLibrary")
-            copyright.set("© 2026 Davils. Licensed under Apache 2.0.")
-            outputDirectory.set("docs/api")
+            enabled = true
+            moduleName = "MyLibrary"
+            copyright = "© 2026 Davils. Licensed under Apache 2.0."
+            outputDirectory = "docs/api"
         }
     }
 }
 ```
+
+<seealso>
+    <category ref="project">
+        <a href="Documentation-Overview.md">Overview</a>
+        <a href="Documentation-Configuration.md">Configuration</a>
+    </category>
+</seealso>

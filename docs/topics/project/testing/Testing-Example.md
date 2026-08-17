@@ -1,5 +1,9 @@
 # Examples
 
+<link-summary>Worked testing configuration examples.</link-summary>
+
+<card-summary>Complete test setups you can copy.</card-summary>
+
 ## Minimal Setup — Kotlin JVM
 
 Enable testing with all defaults. Tests run on the JUnit Platform for JVM targets with half the available
@@ -9,7 +13,7 @@ CPU cores, a 10-minute timeout, and passed/skipped events logged to the console.
 kreate {
     project {
         tests {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -26,7 +30,7 @@ plugins {
 kreate {
     project {
         tests {
-            enabled.set(true)
+            enabled = true
         }
     }
 }
@@ -39,17 +43,17 @@ test suites, and produces XML reports for the CI test parser.
 
 ```kotlin
 tests {
-    enabled.set(true)
-    maxParallelForks.set(Runtime.getRuntime().availableProcessors())
-    timeoutMinutes.set(15)
-    alwaysRunTests.set(true)
-    failOnNoDiscoveredTests.set(true)
-    ignoreFailures.set(false)
+    enabled = true
+    maxParallelForks = Runtime.getRuntime().availableProcessors()
+    timeoutMinutes = 15
+    alwaysRunTests = true
+    failOnNoDiscoveredTests = true
+    ignoreFailures = false
 
     report {
-        enabled.set(true)
-        xml.set(true)
-        html.set(false)
+        enabled = true
+        xml = true
+        html = false
     }
 }
 ```
@@ -61,12 +65,12 @@ or report publishing still run.
 
 ```kotlin
 tests {
-    enabled.set(true)
-    ignoreFailures.set(true)
+    enabled = true
+    ignoreFailures = true
 
     report {
-        enabled.set(true)
-        xml.set(true)
+        enabled = true
+        xml = true
     }
 }
 ```
@@ -78,11 +82,11 @@ tests are running and in what order.
 
 ```kotlin
 tests {
-    enabled.set(true)
+    enabled = true
     logging {
-        logPassedTests.set(true)
-        logSkippedTests.set(true)
-        logTestStarted.set(true)
+        logPassedTests = true
+        logSkippedTests = true
+        logTestStarted = true
     }
 }
 ```
@@ -93,11 +97,11 @@ Generate a browsable HTML test report alongside the standard XML output.
 
 ```kotlin
 tests {
-    enabled.set(true)
+    enabled = true
     report {
-        enabled.set(true)
-        xml.set(true)
-        html.set(true)
+        enabled = true
+        xml = true
+        html = true
     }
 }
 ```
@@ -117,25 +121,32 @@ kreate {
         projectGroup = group.toString()
 
         tests {
-            enabled.set(true)
-            maxParallelForks.set(4)
-            timeoutMinutes.set(10)
-            ignoreFailures.set(false)
-            alwaysRunTests.set(false)
-            failOnNoDiscoveredTests.set(true)
+            enabled = true
+            maxParallelForks = 4
+            timeoutMinutes = 10
+            ignoreFailures = false
+            alwaysRunTests = false
+            failOnNoDiscoveredTests = true
 
             logging {
-                logPassedTests.set(true)
-                logSkippedTests.set(true)
-                logTestStarted.set(false)
+                logPassedTests = true
+                logSkippedTests = true
+                logTestStarted = false
             }
 
             report {
-                enabled.set(true)
-                xml.set(true)
-                html.set(true)
+                enabled = true
+                xml = true
+                html = true
             }
         }
     }
 }
 ```
+
+<seealso>
+    <category ref="project">
+        <a href="Testing-Overview.md">Overview</a>
+        <a href="Testing-Configuration-Reference.md">Configuration reference</a>
+    </category>
+</seealso>

@@ -1,0 +1,76 @@
+name: Bug report
+description: Something in Kreate does not behave as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Native build problems are usually environment specific. The version and toolchain
+        fields below are what make them reproducible rather than guesswork.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: The smallest `kreate { }` block and project layout that shows the problem.
+      render: kotlin
+    validations:
+      required: true
+
+  - type: input
+    id: kreate-version
+    attributes:
+      label: Kreate version
+    validations:
+      required: true
+
+  - type: input
+    id: gradle-version
+    attributes:
+      label: Gradle version
+      description: Output of `./gradlew --version`.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Linux, macOS, Windows]
+    validations:
+      required: true
+
+  - type: input
+    id: jdk
+    attributes:
+      label: JDK version
+      description: The toolchain version, not just the JDK that launched Gradle.
+    validations:
+      required: true
+
+  - type: textarea
+    id: toolchain
+    attributes:
+      label: Native toolchain
+      description: |
+        For JNI or C-interop problems: the output of `cmake --version` and `cargo --version`,
+        and whether the tool is on `PATH` or configured explicitly.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Build output
+      description: Run with `--stacktrace`. Remove anything sensitive before pasting.
+      render: shell
+    validations:
+      required: false

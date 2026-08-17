@@ -1,5 +1,9 @@
 # Troubleshooting
 
+<link-summary>Diagnosing C-interop build failures.</link-summary>
+
+<card-summary>Toolchain, target, and binding problems, explained.</card-summary>
+
 ## `cargo` not found
 
 Ensure the Rust toolchain is installed and `cargo` is available on your `PATH`. On macOS, Kreate
@@ -75,7 +79,7 @@ already exists at those paths.
 
 ## Definition File Not Updated After Config Changes
 
-The `kreate-c-interop-definitions` task always rewrites the `.def` file on execution. However,
+The `kreateCInteropDefinitions` task always rewrites the `.def` file on execution. However,
 Gradle's incremental build cache may prevent the task from re-running if its declared inputs have
 not changed. If you change `rustTargets`, `defFileName`, `dirName`, or directory settings and the
 `.def` file appears stale, run a clean build:
@@ -86,12 +90,21 @@ not changed. If you change `rustTargets`, `defFileName`, `dirName`, or directory
 
 ## Compilation Fails for a Specific Target
 
-If `kreate-c-interop-compile` fails with a `GradleException` for a specific target, the full Cargo error
+If `kreateCInteropCompile` fails with a `GradleException` for a specific target, the full Cargo error
 output is printed to the Gradle build log. Run with `--info` or `--debug` for more detail:
 
 ```bash
-./gradlew kreate-c-interop-compile --info
+./gradlew kreateCInteropCompile --info
 ```
 
 Common causes are missing target toolchains, incorrect `Cargo.toml` configuration, or Rust
 source code compilation errors.
+
+<seealso>
+    <category ref="native">
+        <a href="C-Interoperation-Overview.md">Overview</a>
+    </category>
+    <category ref="platform">
+        <a href="JNI-Troubleshooting.md">JNI troubleshooting</a>
+    </category>
+</seealso>

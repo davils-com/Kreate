@@ -78,5 +78,4 @@ internal fun getOs(): Lazy<OsTarget> = lazy {
             else -> OsTarget.UNKNOWN
         }
     }
-
 }

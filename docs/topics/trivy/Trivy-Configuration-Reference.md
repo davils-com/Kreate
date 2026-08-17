@@ -1,5 +1,9 @@
 # Trivy Configuration Reference
 
+<link-summary>Every property in the trivy block.</link-summary>
+
+<card-summary>The complete security and compliance DSL.</card-summary>
+
 This page provides a complete reference of all configuration properties available in the `trivy { }` block.
 
 ## Global Configuration
@@ -57,3 +61,9 @@ The `trivy` block is located at `kreate { trivy { ... } }`.
 
 ### SecretSeverity
 `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`
+
+<seealso>
+    <category ref="security">
+        <a href="Trivy-Overview.md">Security and compliance</a>
+    </category>
+</seealso>

@@ -17,10 +17,11 @@
 package com.davils.kreate.module.trivy
 
 import com.davils.kreate.KreateExtension
-import com.davils.kreate.module.trivy.tasks.TrivyVulnerabilityScan
+import com.davils.kreate.KreateTasks
 import com.davils.kreate.module.trivy.tasks.TrivyLicenseScan
-import com.davils.kreate.module.trivy.tasks.TrivySecretScan
 import com.davils.kreate.module.trivy.tasks.TrivyScan
+import com.davils.kreate.module.trivy.tasks.TrivySecretScan
+import com.davils.kreate.module.trivy.tasks.TrivyVulnerabilityScan
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.register
 
@@ -40,7 +41,7 @@ internal fun Project.initializeTrivy(extension: KreateExtension) {
     }
 
     val trivySecretExtension = trivyExtension.secrets
-    val secretScan = tasks.register<TrivySecretScan>("trivySecretScan") {
+    val secretScan = tasks.register<TrivySecretScan>(KreateTasks.Trivy.SECRETS) {
         failOnFindings.set(trivySecretExtension.failOnFindings)
         secretConfig.set(trivySecretExtension.secretConfig)
         severity.set(trivySecretExtension.severity.map { it.map { s -> s.name } })
@@ -48,7 +49,7 @@ internal fun Project.initializeTrivy(extension: KreateExtension) {
     }
 
     val trivyLicenseExtension = trivyExtension.license
-    val licenseScan = tasks.register<TrivyLicenseScan>("trivyLicenseScan") {
+    val licenseScan = tasks.register<TrivyLicenseScan>(KreateTasks.Trivy.LICENSES) {
         failOnForbidden.set(trivyLicenseExtension.failOnForbidden)
         severity.set(trivyLicenseExtension.severity.map { it.map { s -> s.name } })
         ignoredLicenses.set(trivyLicenseExtension.ignoredLicenses)
@@ -56,13 +57,13 @@ internal fun Project.initializeTrivy(extension: KreateExtension) {
     }
 
     val trivyVulnerabilityExtension = trivyExtension.vulnerability
-    val vulnerabilityScan = tasks.register<TrivyVulnerabilityScan>("trivyVulnerabilityScan") {
+    val vulnerabilityScan = tasks.register<TrivyVulnerabilityScan>(KreateTasks.Trivy.VULNERABILITIES) {
         severity.set(trivyVulnerabilityExtension.score.map { it.map { s -> s.name } })
         failOnFindings.set(trivyVulnerabilityExtension.failOnFindings)
         lockFiles.setFrom(trivyVulnerabilityExtension.lockFiles)
     }
 
-    tasks.register<TrivyScan>("trivyScan") {
+    tasks.register<TrivyScan>(KreateTasks.Trivy.SCAN) {
         dependsOn(secretScan, licenseScan, vulnerabilityScan)
     }
 }

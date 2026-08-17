@@ -1,5 +1,9 @@
 # Examples
 
+<link-summary>Worked C-interop examples for Rust, C, and C++.</link-summary>
+
+<card-summary>Complete native interop setups you can copy.</card-summary>
+
 ## Minimal Configuration
 
 The simplest possible setup: C-Interop is enabled, and Kreate auto-detects everything else.
@@ -9,7 +13,7 @@ kreate {
     platform {
         multiplatform {
             cInterop {
-                enabled.set(true)
+                enabled = true
             }
         }
     }
@@ -28,9 +32,9 @@ kreate {
     platform {
         multiplatform {
             cInterop {
-                enabled.set(true)
-                nameOverride.set("myRustLib")
-                projectDirectory.set(layout.projectDirectory.dir("native"))
+                enabled = true
+                nameOverride = "myRustLib"
+                projectDirectory = layout.projectDirectory.dir("native")
             }
         }
     }
@@ -49,13 +53,13 @@ kreate {
     platform {
         multiplatform {
             cInterop {
-                enabled.set(true)
-                rustTargets.set(listOf(
+                enabled = true
+                rustTargets = listOf(
                     "x86_64-unknown-linux-gnu",
                     "aarch64-unknown-linux-gnu",
                     "aarch64-apple-darwin",
                     "x86_64-pc-windows-gnu"
-                ))
+                )
                 linux {
                     // applied to both linuxX64 and linuxArm64
                 }
@@ -92,10 +96,10 @@ kreate {
     platform {
         multiplatform {
             cInterop {
-                enabled.set(true)
+                enabled = true
                 defFile {
-                    fileName.set("bindings.def")
-                    dirName.set("kotlin-native")
+                    fileName = "bindings.def"
+                    dirName = "kotlin-native"
                 }
             }
         }
@@ -115,17 +119,17 @@ kreate {
     platform {
         multiplatform {
             cInterop {
-                enabled.set(true)
-                nameOverride.set("mylib")
-                projectDirectory.set(layout.projectDirectory.dir("rust"))
-                packageNameOverride.set("com.davils.myapp.native")
-                rustTargets.set(listOf(
+                enabled = true
+                nameOverride = "mylib"
+                projectDirectory = layout.projectDirectory.dir("rust")
+                packageNameOverride = "com.davils.myapp.native"
+                rustTargets = listOf(
                     "x86_64-unknown-linux-gnu",
                     "aarch64-apple-darwin"
-                ))
+                )
                 defFile {
-                    fileName.set("cinterop.def")
-                    dirName.set("defs")
+                    fileName = "cinterop.def"
+                    dirName = "defs"
                 }
                 linux {
                     compilations.all {
@@ -138,3 +142,10 @@ kreate {
     }
 }
 ```
+
+<seealso>
+    <category ref="native">
+        <a href="C-Interoperation-Overview.md">Overview</a>
+        <a href="C-Interoperation-Configuration-Reference.md">Configuration reference</a>
+    </category>
+</seealso>

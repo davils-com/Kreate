@@ -1,5 +1,9 @@
 # License Scanning with Trivy
 
+<link-summary>Checking third-party licences against your policy.</link-summary>
+
+<card-summary>Catch an incompatible licence before it ships.</card-summary>
+
 Kreate's license scanning integration allows you to automatically verify the licenses of your project's dependencies against a list of forbidden or restricted licenses. This is critical in commercial environments to ensure legal compliance (e.g., avoiding "copyleft" licenses like GPL in proprietary software).
 
 ## How it Works
@@ -11,20 +15,20 @@ The `license { }` block defines how Trivy analyzes your project for license comp
 ```kotlin
 kreate {
     trivy {
-        enabled.set(true)
+        enabled = true
         license {
             // Fail the build if a forbidden license is found
-            failOnForbidden.set(true)
+            failOnForbidden = true
 
             // Define which severities should be reported
-            severity.set(listOf(
+            severity = listOf(
                 LicenseSeverity.CRITICAL,
                 LicenseSeverity.HIGH,
                 LicenseSeverity.UNKNOWN
-            ))
+            )
 
             // Licenses that are explicitly allowed, even if Trivy flags them
-            ignoredLicenses.set(listOf("MIT", "Apache-2.0"))
+            ignoredLicenses = listOf("MIT", "Apache-2.0")
         }
     }
 }
@@ -50,14 +54,14 @@ Trivy's license classification is a technical aid and does not replace legal adv
 
 *   **Lockfile Management**: Kreate relies on Gradle lockfiles for license scanning. You must manually enable dependency locking and generate lockfiles using `./gradlew dependencies --write-locks`.
 *   **Handling "Unknown"**: Licenses are often marked as `UNKNOWN` if metadata in Maven Central is incomplete. Verify these manually and add them to `ignoredLicenses` if they are acceptable.
-*   **Gradual Adoption**: For existing projects, start with `failOnForbidden.set(false)` to identify issues without breaking the build, then fix or ignore them before enforcing compliance.
+*   **Gradual Adoption**: For existing projects, start with `failOnForbidden = false` to identify issues without breaking the build, then fix or ignore them before enforcing compliance.
 
 ## How to Run
 
 To execute the license scan individually, use the following Gradle command:
 
 <code-block lang="bash">
-./gradlew trivyLicenseScan
+./gradlew kreateTrivyLicenseScan
 </code-block>
 
 Alternatively, the scan is automatically included when running the lifecycle task:
@@ -65,3 +69,10 @@ Alternatively, the scan is automatically included when running the lifecycle tas
 <code-block lang="bash">
 ./gradlew check
 </code-block>
+
+<seealso>
+    <category ref="security">
+        <a href="Trivy-Overview.md">Security and compliance</a>
+        <a href="Trivy-Configuration-Reference.md">Configuration reference</a>
+    </category>
+</seealso>

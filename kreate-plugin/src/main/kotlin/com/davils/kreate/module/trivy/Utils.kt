@@ -16,29 +16,16 @@
 
 package com.davils.kreate.module.trivy
 
-import com.davils.kreate.system.OsTarget
-import com.davils.kreate.system.getOs
-import java.io.File
+import com.davils.kreate.tooling.ExecutableResolver
+import com.davils.kreate.tooling.ExternalTool
 
 /**
  * Resolves the path to the Trivy executable.
  *
- * On macOS the absolute path is searched in common installation locations
- * (Homebrew) because Gradle's `exec` does not inherit the user's
- * interactive shell `PATH` and would otherwise fail to locate `trivy`.
- * On other platforms the bare command name is returned and resolved via `PATH`.
+ * Delegates to the shared [ExecutableResolver], which searches the `PATH` first and falls
+ * back to the conventional installation directories on every platform.
  *
  * @return The resolved Trivy command path or name as a string.
  * @since 1.2.0
  */
-internal fun resolveTrivyCommand(): String {
-    val os by getOs()
-    if (os != OsTarget.MACOS) return "trivy"
-
-    val candidates = listOf(
-        "/opt/homebrew/bin/trivy",
-        "/usr/local/bin/trivy",
-        "/usr/bin/trivy"
-    )
-    return candidates.firstOrNull { File(it).canExecute() } ?: "trivy"
-}
+internal fun resolveTrivyCommand(): String = ExecutableResolver.resolve(ExternalTool.TRIVY)

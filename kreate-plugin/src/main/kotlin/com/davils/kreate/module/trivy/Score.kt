@@ -46,5 +46,5 @@ public enum class Score {
      * Low severity level. Minimal impact on security.
      * @since 1.2.0
      */
-    LOW;
+    LOW
 }

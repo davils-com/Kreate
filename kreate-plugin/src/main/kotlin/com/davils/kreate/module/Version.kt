@@ -19,20 +19,38 @@ package com.davils.kreate.module
 import org.gradle.api.Project
 
 /**
+ * The version used when neither the environment variable nor the project property
+ * provides one.
+ *
+ * @since 2.0.0
+ */
+internal const val FALLBACK_VERSION: String = "1.0.0"
+
+/**
  * Determines the version for a project.
  *
- * This function retrieves the version from an environment variable if it exists.
- * Otherwise, it attempts to find it in the project properties. If neither is
- * found or is "unspecified", it defaults to "1.0.0".
+ * The CI tag environment variable wins, then the project property; if neither yields a
+ * usable value the build falls back to [FALLBACK_VERSION]. That fallback is logged rather
+ * than applied silently, because a release accidentally published as `1.0.0` is both easy
+ * to cause and impossible to take back from a public repository.
  *
  * @param env The environment variable name to check for the version.
  * @param prop The project property name to check for the version.
  * @return The resolved version string.
  * @since 1.0.0
  */
-public fun Project.getProjectVersion(env: String, prop: String): String {
-    val ciTag = System.getenv(env)
-    val versionProp = findProperty(prop)?.toString()
+internal fun Project.getProjectVersion(env: String, prop: String): String {
+    val fromEnvironment = System.getenv(env)?.takeIf { it.isNotBlank() }
+    val fromProperty = findProperty(prop)?.toString()
+        ?.takeIf { it.isNotBlank() && it != "unspecified" }
 
-    return ciTag ?: versionProp?.takeIf { it != "unspecified" } ?: "1.0.0"
+    val resolved = fromEnvironment ?: fromProperty
+    if (resolved != null) return resolved
+
+    logger.warn(
+        "Kreate could not resolve a version for project '$path': environment variable " +
+            "'$env' is unset and project property '$prop' is missing or 'unspecified'. " +
+            "Falling back to $FALLBACK_VERSION."
+    )
+    return FALLBACK_VERSION
 }

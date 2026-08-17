@@ -1,5 +1,9 @@
 # Configuration Reference
 
+<link-summary>Every property in the tests block.</link-summary>
+
+<card-summary>Parallelism, timeouts, logging, and reports.</card-summary>
+
 ## Top-Level Properties
 
 | Property                  | Type                | Default                   | Description                                                             |
@@ -20,8 +24,8 @@ single process — useful for tests that share global state or external resource
 
 ```kotlin
 tests {
-    enabled.set(true)
-    maxParallelForks.set(4)
+    enabled = true
+    maxParallelForks = 4
 }
 ```
 
@@ -38,8 +42,8 @@ blocking CI pipelines indefinitely.
 
 ```kotlin
 tests {
-    enabled.set(true)
-    timeoutMinutes.set(5)
+    enabled = true
+    timeoutMinutes = 5
 }
 ```
 
@@ -55,8 +59,8 @@ downstream task like publishing.
 
 ```kotlin
 tests {
-    enabled.set(true)
-    ignoreFailures.set(true)
+    enabled = true
+    ignoreFailures = true
 }
 ```
 
@@ -69,8 +73,8 @@ to re-execute all tests.
 
 ```kotlin
 tests {
-    enabled.set(true)
-    alwaysRunTests.set(true)
+    enabled = true
+    alwaysRunTests = true
 }
 ```
 
@@ -85,8 +89,8 @@ silently pass.
 
 ```kotlin
 tests {
-    enabled.set(true)
-    failOnNoDiscoveredTests.set(true)
+    enabled = true
+    failOnNoDiscoveredTests = true
 }
 ```
 
@@ -97,11 +101,11 @@ console during a build. Exception details are **always** shown regardless of the
 
 ```kotlin
 tests {
-    enabled.set(true)
+    enabled = true
     logging {
-        logPassedTests.set(true)
-        logSkippedTests.set(true)
-        logTestStarted.set(false)
+        logPassedTests = true
+        logSkippedTests = true
+        logTestStarted = false
     }
 }
 ```
@@ -118,3 +122,10 @@ tests {
 unconditionally printed to the console.
 
 The following exception formatting is always applied regardless of the logging settings:
+
+<seealso>
+    <category ref="project">
+        <a href="Testing-Overview.md">Overview</a>
+        <a href="Testing-Example.md">Examples</a>
+    </category>
+</seealso>

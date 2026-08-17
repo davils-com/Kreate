@@ -24,11 +24,9 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
@@ -49,19 +47,26 @@ public abstract class GenerateDefinitionFiles : Task(
     "kreate c-interoperation"
 ) {
     /**
-     * The working directory for the task.
+     * The native project directory the task writes into.
+     *
+     * Deliberately not an input: this directory <i>contains</i> the task's own output, so
+     * declaring it as an input would nest the output inside the input and make Gradle's
+     * up-to-date check meaningless. What the task actually reads is declared separately.
+     *
      * @since 1.0.0
      */
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Internal
     public abstract val workDir: DirectoryProperty
 
     /**
-     * The root directory of the project.
+     * The C-interop root directory.
+     *
+     * Only its name is used, to build the relative library paths written into the definition
+     * file. It is not an input: it contains both the native project and this task's own output.
+     *
      * @since 1.0.0
      */
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Internal
     public abstract val rootDir: DirectoryProperty
 
     /**
@@ -119,7 +124,7 @@ public abstract class GenerateDefinitionFiles : Task(
      * @since 1.0.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         val cinterop = validateCInteropDir()
         val definition = validateDefinitionFile(cinterop)
         writeFileContent(definition)
@@ -148,18 +153,20 @@ public abstract class GenerateDefinitionFiles : Task(
     private fun writeFileContent(defFile: File) {
         val rootDir = rootDir.get()
         val name = projectName.get()
+        // Exhaustive over the enum on purpose: a new NativeLanguage must not silently
+        // inherit the CMake output layout.
         val libraryPaths = when (language.get()) {
             NativeLanguage.RUST -> resolveRustTargets(rustTargets).joinToString(" ") { target ->
-                "${rootDir.asFile.name}/${name}/target/${target}/release"
+                "${rootDir.asFile.name}/$name/target/$target/release"
             }
-            else -> "${rootDir.asFile.name}/${name}/build"
+            NativeLanguage.C, NativeLanguage.CPP -> "${rootDir.asFile.name}/$name/build"
         }
 
         defFile.writeText(
             """
                 headers = $name.h
                 staticLibraries = lib$name.a
-                compilerOpts = -I${rootDir.asFile.name}/${name}/include
+                compilerOpts = -I${rootDir.asFile.name}/$name/include
                 libraryPaths = $libraryPaths
             """.trimIndent()
         )

@@ -22,6 +22,8 @@ import com.davils.kreate.system.Architecture
 import com.davils.kreate.system.OsTarget
 import com.davils.kreate.system.getArchitecture
 import com.davils.kreate.system.getOs
+import com.davils.kreate.tooling.ExecutableResolver
+import com.davils.kreate.tooling.ExternalTool
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.provider.ListProperty
@@ -90,14 +92,12 @@ internal fun resolveRustTargets(rustTargets: ListProperty<String>): List<String>
 /**
  * Resolves the path to the Cargo executable.
  *
+ * Delegates to the shared [ExecutableResolver], which searches the `PATH` first and then
+ * the conventional rustup location (`~/.cargo/bin`) on every platform. The previous
+ * implementation hard-coded that path on macOS only and therefore ignored a `PATH` entry
+ * pointing at a different toolchain.
+ *
  * @return The resolved Cargo command string.
  * @since 1.0.0
  */
-internal fun resolveCargoCommand(): String {
-    val os by getOs()
-    return if (os == OsTarget.MACOS) {
-        "${System.getProperty("user.home")}/.cargo/bin/cargo"
-    } else {
-        "cargo"
-    }
-}
+internal fun resolveCargoCommand(): String = ExecutableResolver.resolve(ExternalTool.CARGO)

@@ -1,65 +1,173 @@
 # Overview
 
-Managing Kotlin Multiplatform (KMP) and JVM projects typically requires significant Gradle boilerplate — juggling
-platform targets, native interop, toolchain versions, and publishing pipelines across multiple modules.
-**Kreate** eliminates that overhead with a single, opinionated DSL that handles all of it declaratively.
+<link-summary>
+What %product% does, the problems it removes, and how its DSL is organised.
+</link-summary>
 
-## How It Works
+<web-summary>
+%product% is an opinionated Gradle plugin for Kotlin JVM and Multiplatform projects. It replaces
+platform, native interop, security, testing, documentation and publishing boilerplate with a single
+declarative DSL.
+</web-summary>
 
-Instead of manually wiring together Gradle plugins and configuration blocks for each platform, Kreate automatically
-detects your project type — JVM, Android, or Multiplatform — and applies the correct defaults out of the box.
+<card-summary>
+The problems %product% removes, how the DSL is organised, and where each feature lives.
+</card-summary>
 
-This includes:
+A Gradle build for a serious Kotlin project accumulates the same few hundred lines in every
+repository: toolchain alignment, compiler flags, a native build shelled out to CMake or Cargo,
+Dokka wiring, test logging, POM metadata, signing. None of it is interesting, all of it is easy
+to get subtly wrong, and it drifts apart across modules the moment more than one person touches it.
 
-- Java toolchain synchronization across all modules
-- Kotlin compiler flags (`explicitApi()`, `allWarningsAsErrors`) enforced by default
-- Cross-platform target registration for Linux, macOS, and Windows
+**%product%** replaces that with a single `kreate { }` block.
 
-## Native Integration
+## What it is not
 
-For projects that go beyond pure Kotlin, Kreate provides first-class native code integration.
+%product% is a *convention* plugin, not a framework.
 
-### Rust via C-Interop
+- It does not wrap Gradle. Your build script stays a Gradle build script, and every task
+  %product% registers is an ordinary task you can depend on, reconfigure, or disable.
+- It does not apply plugins behind your back. Where an integration needs Detekt or the Maven
+  Publish plugin, you apply it and choose its version; %product% configures it.
+- It does not touch your repositories or dependency resolution unless you ask it to.
 
-- Automates the full Rust → C-Interop bridge using `cargo`
-- Manages multi-architecture compilation targets (`x86_64`, `aarch64`, and more)
-- Can scaffold Rust library structures if they are missing
-- Handles C header synchronization and Kotlin binding generation
+<include from="lib.topic" element-id="opt-in-note"/>
 
-### C/C++ via JNI
+## The DSL at a glance
 
-- CMake-based native builds with zero manual wiring
-- Automatic `java.library.path` configuration for test and runtime execution
-- Follows a structured source layout consistent with C-Interop conventions
+Everything is nested under one extension. The three top-level blocks separate concerns that
+change for different reasons: how the code is *compiled*, what the *project* is, and what the
+build *verifies*.
 
-## Publishing
+```kotlin
+kreate {
+    platform { /* toolchains, compiler flags, native interop */ }
+    project  { /* identity, versioning, docs, tests, publishing */ }
+    trivy    { /* vulnerability, licence and secret scanning */ }
+}
+```
 
-Publishing is a first-class concern in Kreate.
+<deflist type="medium">
+    <def title="platform">
+        Java toolchain and Kotlin compiler configuration, plus the two native bridges:
+        <a href="JNI-Support.md">JNI</a> for C/C++ on the JVM and
+        <a href="C-Interoperation-Overview.md">C-interop</a> for Rust, C, and C++ on Kotlin/Native.
+        See <a href="Platform-Overview.md">Platform configuration</a>.
+    </def>
+    <def title="project">
+        Everything that describes the artifact rather than the compilation:
+        <a href="Project-Metadata.md">metadata</a>,
+        <a href="Project-Version-Resolution.md">version resolution</a>,
+        <a href="Constants-Overview.md">build constants</a>,
+        <a href="Documentation-Overview.md">Dokka</a>,
+        <a href="Testing-Overview.md">testing</a>,
+        <a href="Detekt-Overview.md">static analysis</a>, and
+        <a href="Publishing-Overview.md">publishing</a>.
+    </def>
+    <def title="trivy">
+        Security and compliance scanning, deliberately at the top level because it applies to any
+        project type — including ones that use no other %product% feature.
+        See <a href="Trivy-Overview.md">Security and compliance</a>.
+    </def>
+</deflist>
 
-| Registry      | Feature                         |
-|---------------|---------------------------------|
-| Maven Central | GPG signing + automatic release |
-| GitLab        | Built-in registry configuration |
+## Platform configuration
 
-A declarative DSL covers all POM metadata: licenses, developer information, and SCM links.
+%product% reacts to the Kotlin plugin you applied rather than guessing. Apply
+`org.jetbrains.kotlin.jvm` and you get the JVM configuration path; apply
+`org.jetbrains.kotlin.multiplatform` and you get the multiplatform one.
 
-## Testing
+| Concern | What you write | What you would otherwise repeat |
+|---|---|---|
+| Java toolchain | `javaVersion = JavaVersion.VERSION_17` | `jvmToolchain`, `sourceCompatibility`, `targetCompatibility`, per module |
+| Explicit API | `explicitApi = true` | `explicitApi()` in every Kotlin block |
+| Warning policy | `allWarningsAsErrors = true` | `compilerOptions` on every compile task |
 
-Kreate ships a pre-configured **Kotest** integration — no setup required.
+## Native integration
 
-- Parallel test execution scaled to available CPU cores
-- Standardized logging output for Passed, Skipped, and Started states
-- Automatic HTML and XML report generation for CI/CD pipelines
+Two separate bridges, because they solve different problems.
 
-## Security & Compliance (Trivy)
+<tabs group="native">
+<tab title="JNI (JVM)" group-key="jni">
 
-Automated security scanning integrated directly into the Gradle build process.
+For calling C or C++ from a JVM or Multiplatform-JVM target.
 
-- **Vulnerability Scanning**: Identify CVEs in dependencies using Gradle lockfiles.
-- **License Compliance**: Verify third-party licenses against forbidden lists.
-- **Secret Detection**: Scan source code for hardcoded API keys and credentials.
+- Scaffolds a CMake project on first build and never overwrites it again.
+- **Generates JNI headers from your `external` declarations**, so the C++ compiler verifies
+  the signatures the JVM will actually look up. This is the step Kotlin has no equivalent
+  of — `javac -h` only works on Java sources.
+- Builds with CMake against the JDK from your Gradle toolchain, not whatever the machine
+  happens to default to.
+- Optionally packages the shared library into your JAR with a generated loader, so consumers
+  do not need `-Djava.library.path`.
 
-<tip>
-All features are opt-in via the <code>kreate { }</code> block in your <code>build.gradle.kts</code>.
-Sensible defaults are applied automatically so you only configure what you need.
-</tip>
+Start at [JNI support](JNI-Support.md).
+
+</tab>
+<tab title="C-interop (Native)" group-key="cinterop">
+
+For calling Rust, C, or C++ from Kotlin/Native targets.
+
+- Rust projects are built with Cargo and bridged through `cbindgen`-generated headers.
+- C and C++ projects are built with CMake into a static library and bridged through a
+  hand-written C header.
+- Generates the `.def` files and wires the `cinterop` compilations for each configured target.
+- Maps native target triples to Kotlin/Native targets automatically.
+
+Start at [C-interop overview](C-Interoperation-Overview.md).
+
+</tab>
+</tabs>
+
+## Security and compliance
+
+Three scans, each independently configurable, plus an aggregate task that runs whichever are
+enabled.
+
+<deflist type="narrow">
+    <def title="Vulnerabilities">
+        Scans dependency lock files for known CVEs, filtered by the severities you care about.
+        See <a href="Trivy-Vulnerability-Scan.md">Vulnerability scanning</a>.
+    </def>
+    <def title="Licences">
+        Checks third-party licences against a forbidden list, with an allow list for the ones
+        you have accepted. See <a href="Trivy-License-Scan.md">Licence scanning</a>.
+    </def>
+    <def title="Secrets">
+        Scans source files for credentials, using Trivy's built-in rules plus your own.
+        See <a href="Trivy-Secret-Scan.md">Secret scanning</a>.
+    </def>
+</deflist>
+
+## Quality guarantees
+
+The plugin holds itself to the standard it exists to enforce.
+
+<deflist type="medium">
+    <def title="Verified against real builds">
+        The test suite drives actual Gradle builds through TestKit, not an in-memory project
+        model — including the native pipeline end to end, on Linux, macOS, and Windows.
+    </def>
+    <def title="Verified across versions">
+        Every release is tested against the minimum supported Gradle (%min_gradle%) and the
+        current one, on JDK %tested_java%. See <a href="Compatibility.md">Compatibility</a>.
+    </def>
+    <def title="A guarded public API">
+        The DSL is covered by a checked-in binary compatibility dump. A change to any public
+        declaration fails the build until it is reviewed and recorded.
+    </def>
+    <def title="Reproducible artifacts">
+        Archives are built with pinned timestamps and file order, and CI verifies that building
+        the same source twice produces byte-identical output.
+    </def>
+</deflist>
+
+<include from="lib.topic" element-id="config-cache-note"/>
+
+<seealso>
+    <category ref="start">
+        <a href="Getting-Started.md">Getting started</a>
+        <a href="Compatibility.md">Compatibility</a>
+        <a href="Task-Reference.md">Task reference</a>
+    </category>
+</seealso>

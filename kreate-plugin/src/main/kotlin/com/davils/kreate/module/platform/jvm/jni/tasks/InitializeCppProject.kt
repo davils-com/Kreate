@@ -17,42 +17,34 @@
 package com.davils.kreate.module.platform.jvm.jni.tasks
 
 import com.davils.kreate.jobs.Task
+import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
-import java.io.File
 
 /**
- * Task to initialize a new native C++ JNI project.
+ * Scaffolds a native C++ JNI project.
  *
- * This task creates a `<workDir>/<projectName>/src` directory and generates a
- * minimal `CMakeLists.txt` at `<workDir>/<projectName>/CMakeLists.txt`. It also
- * ensures a placeholder source file exists so that CMake has something to build
- * on first invocation.
+ * The task creates `<projectRoot>/src` and writes a minimal `CMakeLists.txt` plus a
+ * placeholder translation unit, so that the very first build has something to compile.
+ * Existing files are never overwritten: once scaffolded, the CMake project belongs to the
+ * user.
  *
  * @since 1.1.0
  */
-@DisableCachingByDefault(because = "Initialization task is only intended to run once and has conditional side effects")
-public abstract class InitializeCppProject : Task("Generates a new native C++ JNI project.", "kreate jni") {
+@DisableCachingByDefault(because = "Scaffolding runs once and deliberately preserves existing files")
+public abstract class InitializeCppProject : Task(
+    "Generates a new native C++ JNI project.",
+    "kreate jni"
+) {
     /**
-     * The root working directory where the native project will be created.
-     * @since 1.1.0
-     */
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    public abstract val workDir: DirectoryProperty
-
-    /**
-     * The name of the native project. Used as the CMake `project(...)` name and
-     * as the produced library target name.
+     * The name of the native project.
+     *
+     * Used as the CMake `project(...)` name, as the `add_library` target name, and
+     * therefore as the name passed to `System.loadLibrary`.
      *
      * @since 1.1.0
      */
@@ -60,83 +52,105 @@ public abstract class InitializeCppProject : Task("Generates a new native C++ JN
     public abstract val projectName: Property<String>
 
     /**
-     * Additional C++ library include directories added to the generated
-     * `CMakeLists.txt`.
+     * The native project root that is created and populated.
      *
-     * Each entry is appended to `target_include_directories`, enabling the
-     * native project to resolve headers from multiple external libraries.
-     * When empty, only the conventional `include` directory and the JNI
-     * headers are used.
-     *
-     * @since 1.3.0
-     */
-    @get:Input
-    @get:Optional
-    public abstract val libraryIncludePaths: ListProperty<String>
-
-    /**
-     * The output directory that represents the native project root.
+     * Declared as the only output. The previous version additionally declared the parent
+     * directory as an input, which nested the output inside the input and made Gradle's
+     * up-to-date check meaningless.
      *
      * @since 1.1.0
      */
     @get:OutputDirectory
-    public val outputDir: File
-        get() = workDir.get().asFile.resolve(projectName.get())
+    public abstract val projectRoot: DirectoryProperty
 
     /**
-     * Executes the initialization: creates the project structure and the
-     * initial `CMakeLists.txt` when missing.
+     * Creates the project structure and the initial CMake and source files when missing.
      *
      * @return Unit
+     * @throws GradleException If the source directory cannot be created.
      * @since 1.1.0
      */
     @TaskAction
-    override fun execute() {
-        val projectName = projectName.get()
-        val projectRoot = workDir.get().asFile.resolve(projectName)
-        val srcDir = projectRoot.resolve(SRC_DIR_NAME)
-        if (!srcDir.exists() && !srcDir.mkdirs()) {
-            error("Failed to create src directory: ${srcDir.absolutePath}")
+    public fun execute() {
+        val name = projectName.get()
+        val root = projectRoot.get().asFile
+        val sourceDirectory = root.resolve(SRC_DIR_NAME)
+
+        if (!sourceDirectory.isDirectory && !sourceDirectory.mkdirs()) {
+            throw GradleException("Failed to create the JNI source directory: ${sourceDirectory.absolutePath}")
         }
 
-        val cMake = projectRoot.resolve(CMAKE_FILE_NAME)
-        if (!cMake.exists()) {
-            cMake.writeText(defaultCMakeContent(projectName, libraryIncludePaths.getOrElse(emptyList())))
+        val cMakeFile = root.resolve(CMAKE_FILE_NAME)
+        if (!cMakeFile.exists()) {
+            cMakeFile.writeText(defaultCMakeContent(name))
+            logger.lifecycle("Created ${cMakeFile.absolutePath}.")
+        } else if (!cMakeFile.readText().contains(INCLUDE_DIRS_VARIABLE)) {
+            logger.warn(
+                "${cMakeFile.absolutePath} does not reference \${$INCLUDE_DIRS_VARIABLE}. " +
+                    "Add it to target_include_directories(...) so that generated JNI headers and " +
+                    "the configured libraryIncludePaths are visible to the compiler."
+            )
         }
 
-        val placeholder = srcDir.resolve("$projectName.cpp")
+        val placeholder = sourceDirectory.resolve("$name.cpp")
         if (!placeholder.exists()) {
-            placeholder.writeText(defaultSourceContent(projectName))
+            placeholder.writeText(defaultSourceContent(name))
+            logger.lifecycle("Created ${placeholder.absolutePath}.")
         }
     }
 
-    private fun defaultCMakeContent(projectName: String, libraryIncludePaths: List<String>): String {
-        val extraIncludes = libraryIncludePaths
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .joinToString("") { " \"$it\"" }
-        return $$"""
+    /**
+     * Renders the default `CMakeLists.txt` for a freshly scaffolded project.
+     *
+     * Include directories are consumed from the [INCLUDE_DIRS_VARIABLE] cache variable
+     * rather than being baked in. That way a change to `libraryIncludePaths`, and the
+     * directory holding the generated JNI headers, take effect without the user having to
+     * edit a generated file that Kreate deliberately never rewrites.
+     *
+     * @param projectName The CMake project and library target name.
+     * @return The rendered CMake script.
+     * @since 1.1.0
+     */
+    private fun defaultCMakeContent(projectName: String): String {
+        val sourcesVariable = "${projectName.uppercase()}_SOURCES"
+        return """
             cmake_minimum_required(VERSION 3.20)
-            project($$projectName CXX)
+            project($projectName CXX)
             set(CMAKE_CXX_STANDARD 17)
             set(CMAKE_CXX_STANDARD_REQUIRED ON)
             set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
             find_package(JNI REQUIRED)
 
-            file(GLOB $${projectName.uppercase()}_SOURCES "src/*.cpp" "src/*.cc")
+            # CONFIGURE_DEPENDS re-evaluates the glob on every build system invocation, so a
+            # newly added source file is picked up without a manual reconfigure.
+            file(GLOB $sourcesVariable CONFIGURE_DEPENDS "src/*.cpp" "src/*.cc")
 
-            add_library($$projectName SHARED ${$${projectName.uppercase()}_SOURCES})
-            target_include_directories($$projectName PRIVATE ${JNI_INCLUDE_DIRS} include$$extraIncludes)
-            target_link_libraries($$projectName PRIVATE ${JNI_LIBRARIES})
+            add_library($projectName SHARED ${'$'}{$sourcesVariable})
+            target_include_directories($projectName PRIVATE
+                ${'$'}{JNI_INCLUDE_DIRS}
+                include
+                ${'$'}{$INCLUDE_DIRS_VARIABLE}
+            )
+            target_link_libraries($projectName PRIVATE ${'$'}{JNI_LIBRARIES})
         """.trimIndent()
     }
 
+    /**
+     * Renders the placeholder translation unit.
+     *
+     * @param projectName The native project name, used in the comment.
+     * @return The rendered C++ source.
+     * @since 1.1.0
+     */
     private fun defaultSourceContent(projectName: String): String = """
         #include <jni.h>
 
         // Placeholder source for JNI project "$projectName".
-        // Implement your native methods here.
+        //
+        // Run `gradle kreateJniHeaders` to generate declarations for every `external`
+        // function in this module, then include the generated header here and implement
+        // the declared functions.
     """.trimIndent()
 
     /**
@@ -156,5 +170,11 @@ public abstract class InitializeCppProject : Task("Generates a new native C++ JN
          * @since 1.1.0
          */
         public const val SRC_DIR_NAME: String = "src"
+
+        /**
+         * The CMake cache variable Kreate passes its include directories through.
+         * @since 2.0.0
+         */
+        public const val INCLUDE_DIRS_VARIABLE: String = "KREATE_JNI_INCLUDE_DIRS"
     }
 }

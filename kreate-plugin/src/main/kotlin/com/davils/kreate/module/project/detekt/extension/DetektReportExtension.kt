@@ -61,7 +61,6 @@ public abstract class DetektReportExtension @Inject constructor() {
     @get:Nested
     public abstract val sarif: DetektSarifReportSpec
 
-
     /**
      * Configures the Checkstyle report.
      *

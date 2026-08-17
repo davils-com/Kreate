@@ -1,5 +1,9 @@
 # Detekt Reports
 
+<link-summary>Configuring Detekt report formats and locations.</link-summary>
+
+<card-summary>HTML, SARIF, Checkstyle, and Markdown output.</card-summary>
+
 Kreate provides a dedicated `reports { }` block within the `detekt { }` configuration to manage the output of the static analysis. You can enable multiple report formats simultaneously to satisfy different requirements (e.g., HTML for human reading, SARIF for CI integration).
 
 ## Report Types
@@ -26,11 +30,11 @@ Each report type is configured using a nested block. For example:
 detekt {
     reports {
         html {
-            required.set(true)
-            outputLocation.set(layout.buildDirectory.file("qa/detekt-report.html"))
+            required = true
+            outputLocation = layout.buildDirectory.file("qa/detekt-report.html")
         }
         sarif {
-            required.set(true)
+            required = true
         }
     }
 }
@@ -57,3 +61,12 @@ If `outputLocation` is not specified, Kreate uses the following default location
 ## Advanced Report Customization
 
 By default, Kreate ensures that all reports use the project's root build directory for centralized reporting if possible, or the local project build directory for subprojects. This ensures that you can always find your reports in a consistent location regardless of your project structure.
+
+<seealso>
+    <category ref="project">
+        <a href="Detekt-Overview.md">Overview</a>
+    </category>
+    <category ref="reference">
+        <a href="CI-Integration.md">CI integration</a>
+    </category>
+</seealso>

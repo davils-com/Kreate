@@ -1,0 +1,177 @@
+/*
+ * Copyright 2026 Davils
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.davils.kreate.functional
+
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
+import java.io.File
+
+/**
+ * A throwaway Gradle project that applies the Kreate plugin, driven through TestKit.
+ *
+ * The fixture writes a complete, self-contained build so that each test exercises the
+ * plugin the way a consumer would: through real Gradle task execution rather than through
+ * an in-memory project model. That is the only way to observe the properties this suite
+ * cares about — up-to-date behaviour, task ordering, and configuration cache reuse.
+ *
+ * @param rootDirectory The temporary directory the project is written into.
+ */
+class KreateBuildFixture(
+    val rootDirectory: File,
+    private val gradleVersion: String? = null
+) {
+
+    /**
+     * The native project directory used by the JNI tests.
+     */
+    val nativeProjectDirectory: File get() = rootDirectory.resolve("jni/sample")
+
+    /**
+     * Writes the settings file. Repositories are declared here rather than relying on the
+     * plugin injecting them, matching how an enterprise build is set up.
+     */
+    fun writeSettings(projectName: String = "sample") {
+        write(
+            "settings.gradle.kts",
+            """
+            dependencyResolutionManagement {
+                repositories {
+                    mavenCentral()
+                    gradlePluginPortal()
+                }
+            }
+
+            rootProject.name = "$projectName"
+            """.trimIndent()
+        )
+    }
+
+    /**
+     * Writes a build file that applies Kotlin/JVM and Kreate with the given configuration.
+     *
+     * @param kreateBlock The body of the `kreate { }` block.
+     * @param extraPlugins Additional plugin ids applied before Kreate.
+     * @param extra Additional build script content appended after the Kreate block.
+     */
+    fun writeBuild(
+        kreateBlock: String,
+        extraPlugins: List<String> = emptyList(),
+        extra: String = ""
+    ) {
+        val plugins = buildList {
+            add("""id("org.jetbrains.kotlin.jvm")""")
+            addAll(extraPlugins)
+            add("""id("com.davils.kreate")""")
+        }.joinToString("\n    ")
+
+        write(
+            "build.gradle.kts",
+            """
+            plugins {
+                $plugins
+            }
+
+            group = "com.example"
+
+            kreate {
+                $kreateBlock
+            }
+
+            $extra
+            """.trimIndent()
+        )
+    }
+
+    /**
+     * Writes a source file below `src/main/kotlin`.
+     *
+     * @param relativePath The path below the source root.
+     * @param content The file content.
+     */
+    fun writeKotlin(relativePath: String, content: String) {
+        write("src/main/kotlin/$relativePath", content)
+    }
+
+    /**
+     * Writes an arbitrary file below the project root, creating parent directories.
+     *
+     * @param relativePath The path below the project root.
+     * @param content The file content.
+     * @return The written file.
+     */
+    fun write(relativePath: String, content: String): File {
+        val file = rootDirectory.resolve(relativePath)
+        file.parentFile.mkdirs()
+        file.writeText(content.trimIndent() + "\n")
+        return file
+    }
+
+    /**
+     * Reads a file below the project root.
+     *
+     * @param relativePath The path below the project root.
+     * @return The file, which may not exist.
+     */
+    fun file(relativePath: String): File = rootDirectory.resolve(relativePath)
+
+    /**
+     * Runs Gradle and expects the build to succeed.
+     *
+     * @param arguments The Gradle command line arguments.
+     * @return The build result.
+     */
+    fun build(vararg arguments: String): BuildResult = runner(arguments.toList()).build()
+
+    /**
+     * Runs Gradle and expects the build to fail.
+     *
+     * @param arguments The Gradle command line arguments.
+     * @return The build result.
+     */
+    fun buildAndFail(vararg arguments: String): BuildResult = runner(arguments.toList()).buildAndFail()
+
+    private fun runner(arguments: List<String>): GradleRunner = GradleRunner.create()
+        .withProjectDir(rootDirectory)
+        .withPluginClasspath()
+        .withArguments(arguments + listOf("--stacktrace", "--configuration-cache"))
+        .forwardOutput()
+        .let { runner -> gradleVersion?.let(runner::withGradleVersion) ?: runner }
+
+    /**
+     * Companion object holding shared fixture snippets.
+     */
+    companion object {
+        /**
+         * The Java version the generated builds target.
+         *
+         * Taken from the JVM running the tests so that the fixture never depends on a
+         * toolchain that happens not to be installed on the machine or CI agent.
+         */
+        val javaVersion: Int = Runtime.version().feature()
+
+        /**
+         * A `platform { }` block pinned to [javaVersion].
+         */
+        val platformBlock: String = """
+            platform {
+                javaVersion = JavaVersion.VERSION_$javaVersion
+                explicitApi = false
+                allWarningsAsErrors = false
+            }
+        """.trimIndent()
+    }
+}

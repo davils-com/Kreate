@@ -22,14 +22,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
-import org.gradle.process.ExecOperations
 import javax.inject.Inject
 
 /**
@@ -53,8 +51,7 @@ public abstract class InitializeRustProject @Inject constructor(
      * The working directory where the Rust project will be created.
      * @since 1.0.0
      */
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Internal
     public abstract val workDir: DirectoryProperty
 
     /**
@@ -79,7 +76,7 @@ public abstract class InitializeRustProject @Inject constructor(
      * @since 1.0.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         val workDirFile = workDir.get().asFile
         val projectName = projectName.get()
         val rustProjectDir = workDirFile.resolve(projectName)

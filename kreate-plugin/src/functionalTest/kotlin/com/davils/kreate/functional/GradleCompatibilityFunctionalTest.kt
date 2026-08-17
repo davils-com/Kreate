@@ -1,0 +1,88 @@
+/*
+ * Copyright 2026 Davils
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.davils.kreate.functional
+
+import io.kotest.matchers.shouldBe
+import org.gradle.testkit.runner.TaskOutcome
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
+import java.io.File
+
+/**
+ * Verifies that the plugin works on every Gradle version it claims to support.
+ *
+ * A plugin compiled against a newer Gradle API fails at runtime, not at build time, and
+ * only on the consumer's machine. Running the same build against the declared minimum is
+ * the only way to catch accidental use of a newer API before publication.
+ */
+@DisplayName("Gradle compatibility")
+class GradleCompatibilityFunctionalTest {
+
+    @TempDir
+    lateinit var projectDir: File
+
+    @ParameterizedTest(name = "applies and builds on Gradle {0}")
+    @MethodSource("supportedGradleVersions")
+    fun buildsOnSupportedVersions(gradleVersion: String) {
+        val fixture = KreateBuildFixture(projectDir, gradleVersion)
+        fixture.writeSettings()
+        fixture.writeBuild(
+            """
+            ${KreateBuildFixture.platformBlock}
+
+            project {
+                name = "Sample"
+                description = "Compatibility fixture"
+
+                buildConstant {
+                    enabled = true
+                    className = "SampleConstants"
+                    constant("flavour", "enterprise")
+                }
+            }
+            """.trimIndent()
+        )
+        fixture.writeKotlin(
+            "com/example/Sample.kt",
+            """
+            package com.example
+
+            class Sample
+            """.trimIndent()
+        )
+
+        val result = fixture.build("build")
+
+        result.task(":build")?.outcome shouldBe TaskOutcome.SUCCESS
+    }
+
+    private companion object {
+        /**
+         * The Gradle versions the plugin is verified against.
+         *
+         * The declared minimum comes from the build's own compatibility constants, so the
+         * test and the published documentation cannot drift apart.
+         */
+        @JvmStatic
+        fun supportedGradleVersions(): List<String> = listOfNotNull(
+            System.getProperty("kreate.test.minGradleVersion"),
+            System.getProperty("kreate.test.gradleVersion")
+        ).distinct()
+    }
+}

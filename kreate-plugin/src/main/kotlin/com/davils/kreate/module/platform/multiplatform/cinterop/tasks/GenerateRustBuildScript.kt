@@ -20,10 +20,8 @@ import com.davils.kreate.jobs.Task
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
@@ -42,11 +40,15 @@ public abstract class GenerateRustBuildScript : Task(
     "kreate c-interoperation"
 ) {
     /**
-     * The working directory containing the Rust project.
+     * The native project directory the task writes into.
+     *
+     * Deliberately not an input: this directory <i>contains</i> the task's own output, so
+     * declaring it as an input would nest the output inside the input and make Gradle's
+     * up-to-date check meaningless. What the task actually reads is declared separately.
+     *
      * @since 1.0.0
      */
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:Internal
     public abstract val workDir: DirectoryProperty
 
     /**
@@ -89,7 +91,7 @@ public abstract class GenerateRustBuildScript : Task(
      * @since 1.0.0
      */
     @TaskAction
-    override fun execute() {
+    public fun execute() {
         val buildRsFile = workDir.get().asFile.resolve(BUILD_RUST_FILE_NAME)
         if (!buildRsFile.exists()) {
             buildRsFile.createNewFile()

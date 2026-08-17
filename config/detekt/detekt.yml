@@ -1,0 +1,124 @@
+# Detekt configuration for the Kreate plugin.
+#
+# Applied with `buildUponDefaultConfig = true` and `allRules = true`, so this file only
+# records deliberate deviations from the detekt defaults. Every disabled rule needs a
+# reason — "it was noisy" is not one.
+
+config:
+  validation: true
+  warningsAsErrors: true
+
+comments:
+  # Mirrors the strict KDoc guidelines in .junie/AGENTS.md: everything that is part of
+  # the published DSL has to be documented.
+  UndocumentedPublicClass:
+    active: true
+    searchInNestedClass: true
+    searchInInnerClass: true
+    searchInInnerObject: true
+    searchInInnerInterface: true
+  UndocumentedPublicFunction:
+    active: true
+  UndocumentedPublicProperty:
+    active: true
+  # Directly contradicts the project's own KDoc guidelines (.junie/AGENTS.md), which ask
+  # for detailed documentation wherever behaviour is non-trivial — including private
+  # helpers that shell out to external toolchains.
+  DocumentationOverPrivateFunction:
+    active: false
+  DocumentationOverPrivateProperty:
+    active: false
+
+complexity:
+  LabeledExpression:
+    active: true
+    ignoredLabels:
+      - 'forEach'
+      - 'apply'
+      - 'run'
+      - 'let'
+      - 'also'
+      - 'with'
+      - 'configure'
+  LongParameterList:
+    # Gradle task types take their collaborators through @Inject constructors.
+    ignoreAnnotated: [ 'Inject' ]
+  TooManyFunctions:
+    # DSL extensions are intentionally wide: one accessor plus one Action overload per block.
+    allowedFunctionsPerClass: 25
+    allowedFunctionsPerFile: 25
+
+libraries:
+  # The entire point of this artifact is a public, stable DSL, so public entities and
+  # public data classes are by design. Explicit return types stay enforced.
+  LibraryEntitiesShouldNotBePublic:
+    active: false
+  ForbiddenPublicDataClass:
+    active: false
+  LibraryCodeMustSpecifyReturnType:
+    active: true
+
+style:
+  # Explicit API mode already requires the `public` modifier everywhere.
+  RedundantVisibilityModifier:
+    active: false
+  # Gradle managed properties require abstract classes with no concrete members.
+  AbstractClassCanBeConcreteClass:
+    active: false
+  OptionalUnit:
+    active: false
+  MaxLineLength:
+    maxLineLength: 120
+    excludeCommentStatements: false
+  ForbiddenComment:
+    active: true
+    comments:
+      - reason: 'Track work in the issue tracker instead of the source.'
+        value: 'FIXME:'
+      - reason: 'Track work in the issue tracker instead of the source.'
+        value: 'STOPSHIP:'
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+  StringShouldBeRawString:
+    # A CMake glob such as "\"src/*.cpp\" \"src/*.cc\"" reads worse as a raw string,
+    # because the literal itself both starts and ends with a quote. Keep the rule for
+    # genuinely escape-heavy strings only.
+    maxEscapedCharacterCount: 5
+
+ktlint:
+  # The ktlint wrapper is enabled for the rules that catch real defects (stray semicolons,
+  # wildcard imports, inconsistent indentation, dead blank lines). The rules below only
+  # encode ktlint's house style for line breaking and trailing commas. The codebase already
+  # follows a consistent style of its own, and turning these on would rewrite ~280
+  # locations without changing a single behaviour.
+  MultilineExpressionWrapping:
+    active: false
+  TrailingCommaOnCallSite:
+    active: false
+  TrailingCommaOnDeclarationSite:
+    active: false
+  ChainMethodContinuation:
+    active: false
+  ClassSignature:
+    active: false
+  FunctionSignature:
+    active: false
+  StringTemplateIndent:
+    active: false
+  ArgumentListWrapping:
+    active: false
+  BlankLineBetweenWhenConditions:
+    active: false
+  NoEmptyFirstLineInClassBody:
+    active: false
+  FunctionExpressionBody:
+    active: false
+  Wrapping:
+    active: false
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+  SwallowedException:
+    active: true

@@ -18,9 +18,9 @@ package com.davils.kreate.module.project.publish
 
 import com.davils.kreate.KreateExtension
 import org.gradle.api.Project
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.authentication.http.HttpHeaderAuthentication
 import org.gradle.kotlin.dsl.credentials
 import org.gradle.kotlin.dsl.withType
@@ -84,4 +84,3 @@ internal fun Project.configureGitlab(
         }
     }
 }
-
