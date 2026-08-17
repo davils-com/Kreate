@@ -55,6 +55,11 @@ enterprise builds were made opt-in.
 - **JNI: wrong JDK**. `find_package(JNI)` resolved against whatever JDK the machine defaulted to
   rather than the Gradle toolchain, silently compiling native code against different headers than
   the Kotlin code targeted. The toolchain JDK is now passed to CMake explicitly.
+- **JNI: CMake configure failed on Windows**. Paths were handed to CMake with native
+  backslashes. A backslash is an escape character in the CMake language, so `FindJNI` re-parsed
+  `-DJAVA_HOME=C:\hostedtoolcache\...` as escape sequences and aborted with
+  `Invalid character escape '\h'`. Every path passed to CMake now uses forward slashes, which
+  are valid on all platforms.
 - **JNI: artifacts missing on Windows and macOS**. Multi-configuration generators append the
   configuration name to the output path, so the library landed in `lib/Release/` while
   `java.library.path` pointed at `lib/`. The per-configuration output directories are now pinned.
@@ -90,6 +95,13 @@ enterprise builds were made opt-in.
   searched conventional install directories on macOS only. A single resolver now searches the
   `PATH` first — including Windows executable extensions — then the conventional locations, on
   every platform.
+
+- **Example: the vulnerability scan covered the wrong dependencies**. The example locked every
+  resolvable configuration, so its lock file described the Kotlin compiler classpath, Dokka's
+  HTML generator and Detekt's rule set plugins alongside the two dependencies it actually ships —
+  2 shipped entries out of 103. The scan consequently reported CVEs in a documentation tool's XML
+  parser as findings against the project. Locking is now restricted to the compile and runtime
+  classpaths, and the Trivy documentation explains why.
 
 ### Changed
 

@@ -18,6 +18,7 @@ package com.davils.kreate.module.platform.jvm.jni.tasks
 
 import com.davils.kreate.jobs.Task
 import com.davils.kreate.module.platform.jvm.jni.resolveCmakeCommand
+import com.davils.kreate.tooling.toCmakePath
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -187,34 +188,46 @@ public abstract class ConfigureNative @Inject constructor(
         libraryDirectory.mkdirs()
 
         val type = buildType.get()
+
+        // Every path handed to CMake uses forward slashes. A backslash is an escape character
+        // in the CMake language, so a native Windows path is re-parsed as escape sequences the
+        // moment a module expands the variable — `FindJNI` fails with "Invalid character escape
+        // '\h'" on a JDK under C:\hostedtoolcache.
+        val libraryPath = libraryDirectory.toCmakePath()
+        val javaHomePath = javaHome.get().toCmakePath()
+
         val arguments = buildList {
             add(resolveCmakeCommand(cmakeExecutable.orNull))
             add("-S")
-            add(sourceDirectory.get().asFile.absolutePath)
+            add(sourceDirectory.get().asFile.toCmakePath())
             add("-B")
-            add(buildDirectory.absolutePath)
+            add(buildDirectory.toCmakePath())
             generator.orNull?.takeIf { it.isNotBlank() }?.let {
                 add("-G")
                 add(it)
             }
             add("-DCMAKE_BUILD_TYPE=$type")
-            add("-DJAVA_HOME=${javaHome.get()}")
+            add("-DJAVA_HOME=$javaHomePath")
 
             // Multi-configuration generators (Visual Studio, Xcode) ignore the plain
             // variable and append the configuration name to the output path. Pinning the
             // per-configuration variables as well is what keeps the artifact in one known
             // place on every platform, which is what java.library.path and the packaging
             // step rely on.
-            add("-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${libraryDirectory.absolutePath}")
-            add("-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${libraryDirectory.absolutePath}")
+            add("-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$libraryPath")
+            add("-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$libraryPath")
             for (configuration in CMAKE_CONFIGURATIONS) {
-                add("-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_$configuration=${libraryDirectory.absolutePath}")
-                add("-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_$configuration=${libraryDirectory.absolutePath}")
+                add("-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_$configuration=$libraryPath")
+                add("-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_$configuration=$libraryPath")
             }
 
             val includePaths = buildList {
-                generatedHeaderDirectory.orNull?.asFile?.let { add(it.absolutePath) }
-                addAll(libraryIncludePaths.getOrElse(emptyList()).filter { it.isNotBlank() })
+                generatedHeaderDirectory.orNull?.asFile?.let { add(it.toCmakePath()) }
+                addAll(
+                    libraryIncludePaths.getOrElse(emptyList())
+                        .filter { it.isNotBlank() }
+                        .map { it.toCmakePath() }
+                )
             }
             if (includePaths.isNotEmpty()) {
                 add("-DKREATE_JNI_INCLUDE_DIRS=${includePaths.joinToString(";")}")
@@ -226,7 +239,7 @@ public abstract class ConfigureNative @Inject constructor(
             logger = logger,
             phase = "configure",
             workingDirectory = sourceDirectory.get().asFile,
-            javaHome = javaHome.get(),
+            javaHome = javaHomePath,
             arguments = arguments
         )
 

@@ -18,6 +18,7 @@ package com.davils.kreate.module.platform.jvm.jni.tasks
 
 import com.davils.kreate.jobs.Task
 import com.davils.kreate.module.platform.jvm.jni.resolveCmakeCommand
+import com.davils.kreate.tooling.toCmakePath
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -128,11 +129,11 @@ public abstract class BuildNative @Inject constructor(
             logger = logger,
             phase = "build",
             workingDirectory = cmakeBuildDirectory.get().asFile,
-            javaHome = javaHome.get(),
+            javaHome = javaHome.get().toCmakePath(),
             arguments = listOf(
                 resolveCmakeCommand(cmakeExecutable.orNull),
                 "--build",
-                cmakeBuildDirectory.get().asFile.absolutePath,
+                cmakeBuildDirectory.get().asFile.toCmakePath(),
                 "--config",
                 type
             )

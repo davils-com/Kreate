@@ -114,13 +114,29 @@ jobs:
 
       # The build conventions pin archive timestamps and file order. This proves it, which
       # is what makes an artifact independently verifiable against its source.
+      # Two things this step has to get right, both of which produced false results before:
+      #
+      #   * `clean` and `jar` must be separate invocations. Gradle does not order them relative
+      #     to each other within a single build, and it ran `clean` last — deleting the JAR that
+      #     was about to be checksummed.
+      #   * Both runs must start from a clean build directory. Otherwise the glob picks up
+      #     artifacts left by an earlier task (the sources and javadoc jars) in one run but not
+      #     the other, and compares different sets of files.
       - name: Build the plugin JAR twice and compare checksums
         run: |
-          ./gradlew :kreate-plugin:jar
-          sha256sum kreate-plugin/build/libs/*.jar > first.sha256
-          ./gradlew :kreate-plugin:clean :kreate-plugin:jar
-          sha256sum kreate-plugin/build/libs/*.jar > second.sha256
-          diff first.sha256 second.sha256 || {
-            echo "::error::The plugin JAR is not reproducible."
-            exit 1
+          set -euo pipefail
+
+          checksum() {
+            ./gradlew --quiet :kreate-plugin:clean
+            ./gradlew --quiet :kreate-plugin:jar
+            sha256sum kreate-plugin/build/libs/*.jar | awk '{print $1}'
           }
+
+          checksum > first.sha256
+          checksum > second.sha256
+
+          if ! diff first.sha256 second.sha256; then
+            echo "::error::The plugin JAR is not reproducible: the same source produced different archives."
+            exit 1
+          fi
+          echo "Reproducible: $(cat first.sha256)"

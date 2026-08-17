@@ -25,8 +25,15 @@ detekt {
     buildUponDefaultConfig = true
 }
 
-dependencyLocking {
-    lockAllConfigurations()
+// Lock only the classpaths that actually ship. `lockAllConfigurations()` also locks build
+// tool internals — the Kotlin compiler classpath, Dokka's generator, Detekt's plugins — and a
+// vulnerability scan over that lockfile reports CVEs in a documentation tool's XML parser as if
+// they were vulnerabilities in the published artifact. Of 103 locked entries, 2 were shipped
+// dependencies.
+val scannedConfigurations = setOf("compileClasspath", "runtimeClasspath")
+
+configurations.matching { it.name in scannedConfigurations }.configureEach {
+    resolutionStrategy.activateDependencyLocking()
 }
 
 kreate {

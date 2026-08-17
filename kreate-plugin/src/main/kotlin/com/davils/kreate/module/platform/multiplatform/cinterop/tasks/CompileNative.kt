@@ -19,6 +19,7 @@ package com.davils.kreate.module.platform.multiplatform.cinterop.tasks
 import com.davils.kreate.jobs.Task
 import com.davils.kreate.module.platform.jvm.jni.resolveCmakeCommand
 import com.davils.kreate.tooling.runExternalTool
+import com.davils.kreate.tooling.toCmakePath
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -116,14 +117,14 @@ public abstract class CompileNative @Inject constructor(
             logger = logger,
             description = "CMake configure",
             workingDirectory = projectRoot,
-            arguments = listOf(cmakeCmd, "-S", ".", "-B", buildDir.absolutePath, "-DCMAKE_BUILD_TYPE=$type")
+            arguments = listOf(cmakeCmd, "-S", ".", "-B", buildDir.toCmakePath(), "-DCMAKE_BUILD_TYPE=$type")
         )
         runExternalTool(
             exec = exec,
             logger = logger,
             description = "CMake build",
             workingDirectory = projectRoot,
-            arguments = listOf(cmakeCmd, "--build", buildDir.absolutePath, "--config", type)
+            arguments = listOf(cmakeCmd, "--build", buildDir.toCmakePath(), "--config", type)
         )
     }
 

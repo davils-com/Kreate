@@ -181,6 +181,31 @@ Check <code>platform { javaVersion }</code> and your installed toolchains with
 <code>./gradlew javaToolchains</code>.
 </note>
 
+## "Invalid character escape" on Windows
+
+```
+CMake Error at FindJNI.cmake:291 (foreach):
+  Syntax error ... Invalid character escape '\h'.
+```
+
+A backslash is an escape character in the CMake *language*, not just in its argument parsing.
+A native Windows path that reaches a CMake variable is re-parsed as escape sequences the moment
+a module expands it, and a JDK under `C:\hostedtoolcache` produces `\h`, which is not a valid
+escape.
+
+%product% passes every path to CMake with forward slashes for this reason, so the built-in
+pipeline is unaffected. If you hit this in your own `CMakeLists.txt`, convert the path rather
+than escaping it:
+
+```cmake
+file(TO_CMAKE_PATH "$ENV{SOME_TOOL_HOME}" SOME_TOOL_HOME)
+```
+
+<tip>
+Forward slashes work on every platform CMake supports, including Windows. CMake's own generated
+files use them throughout, which is the clearest signal that they are the intended form.
+</tip>
+
 ## The DLL is not found on Windows
 
 Multi-configuration generators place output in a per-configuration subdirectory.

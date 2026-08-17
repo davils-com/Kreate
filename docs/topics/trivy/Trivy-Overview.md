@@ -98,13 +98,38 @@ Kreate attempts to automatically resolve the path to the Trivy executable. On ma
 For **License Compliance** and **Vulnerability Scanning (CVEs)**, Kreate relies on Gradle lockfiles. These files provide a precise snapshot of all transitive dependencies, which is required for Trivy to perform an accurate analysis.
 
 ### 1. Enable Dependency Locking
-You must manually enable dependency locking in your project. This is typically done in your `build.gradle.kts`:
+
+You must enable dependency locking yourself, in your `build.gradle.kts`. **Lock only the
+configurations you actually ship:**
 
 ```kotlin
-dependencyLocking {
-    lockAllConfigurations()
+val scannedConfigurations = setOf("compileClasspath", "runtimeClasspath")
+
+configurations.matching { it.name in scannedConfigurations }.configureEach {
+    resolutionStrategy.activateDependencyLocking()
 }
 ```
+
+<warning>
+<p>
+Avoid <code>dependencyLocking { lockAllConfigurations() }</code> if you intend to scan the
+resulting lock file. It also locks every build tool's internal classpath — the Kotlin compiler,
+Dokka's HTML generator, Detekt's rule set plugins — none of which ends up in your artifact.
+</p>
+<p>
+In this repository's own example project the difference was <b>2 shipped dependencies out of 103
+locked entries</b>. Scanning the broad lock file reported eight CVEs, every one of them in the XML
+parser Dokka uses to render documentation. Nothing there is reachable by anything you publish,
+none of it is fixable from your build, and reports like that are how teams learn to ignore their
+security scans.
+</p>
+</warning>
+
+<tip>
+Add <code>testCompileClasspath</code> and <code>testRuntimeClasspath</code> if your policy covers
+test dependencies too. They do not ship, but a compromised test dependency still executes on your
+build machines.
+</tip>
 
 ### 2. Generate Lockfiles
 After enabling locking or when changing dependencies, you must generate or update the lockfiles using the following command:
