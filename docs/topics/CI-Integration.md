@@ -84,7 +84,7 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.java }}
 
-      - uses: gradle/actions@v6
+      - uses: gradle/actions/setup-gradle@v6
         with:
           validate-wrappers: true
 
@@ -202,7 +202,7 @@ See [Version resolution](Project-Version-Resolution.md).
 
 <deflist type="medium">
     <def title="Gradle caches">
-        Use your runner's Gradle integration (<code>gradle/actions</code> on GitHub, the Gradle
+        Use your runner's Gradle integration (<code>gradle/actions/setup-gradle</code> on GitHub, the Gradle
         cache on GitLab) rather than caching directories by hand.
     </def>
     <def title="The native build directory">
