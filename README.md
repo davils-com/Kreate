@@ -221,7 +221,7 @@ kreate {
 | Component        | Minimum | Verified in CI                     |
 |:-----------------|:--------|:-----------------------------------|
 | Gradle           | 9.0     | 9.0 and the current release        |
-| JDK              | 17      | 17, 21, 25                         |
+| JDK              | 17      | 17                                 |
 | Kotlin           | 2.4.0   | 2.4.0                              |
 | Operating system | —       | Linux, macOS, Windows              |
 | CMake            | 3.20    | Required only for native features  |
