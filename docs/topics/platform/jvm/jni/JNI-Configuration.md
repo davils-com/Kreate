@@ -1,4 +1,4 @@
-# Configuration reference
+# JNI configuration reference
 
 <link-summary>
 Every property in the platform.jvm.jni block, with defaults and worked examples.
@@ -31,6 +31,7 @@ by default.
 ## Complete
 
 <code-block lang="kotlin" collapsible="true" collapsed-title="Every JNI property">
+<![CDATA[
 kreate {
     platform {
         jvm {
@@ -66,6 +67,7 @@ kreate {
         }
     }
 }
+]]>
 </code-block>
 
 ## Reference
@@ -167,11 +169,13 @@ the `KREATE_JNI_INCLUDE_DIRS` cache variable, together with the generated header
 Your <code>CMakeLists.txt</code> must consume that variable for these paths to take effect. The
 scaffolded file does:
 <code-block lang="cmake">
+<![CDATA[
 target_include_directories(mylib PRIVATE
     ${JNI_INCLUDE_DIRS}
     include
     ${KREATE_JNI_INCLUDE_DIRS}
 )
+]]>
 </code-block>
 If you scaffolded with an older version, <code>kreateJniInitialize</code> warns when the variable
 is missing rather than letting the paths disappear silently.

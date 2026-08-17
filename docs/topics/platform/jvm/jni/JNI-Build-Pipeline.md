@@ -87,7 +87,7 @@ Three of those arguments exist to prevent a specific failure:
     </def>
 </deflist>
 
-### When it re-runs
+### When configuration re-runs
 
 The configure step is tracked against `CMakeLists.txt`, the build type, the generator, the JDK,
 the include paths, **and the absolute source and build directory paths**.
@@ -112,7 +112,7 @@ Runs the build step:
 cmake --build build/jni/<os>-<arch>/cmake --config Release
 ```
 
-### When it re-runs
+### When the build re-runs
 
 Tracked against every file the native build reads: `CMakeLists.txt`, everything under `src/` and
 `include/`, and the generated headers.

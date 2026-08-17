@@ -1,4 +1,4 @@
-# Examples
+# C-interop examples
 
 <link-summary>Worked C-interop examples for Rust, C, and C++.</link-summary>
 

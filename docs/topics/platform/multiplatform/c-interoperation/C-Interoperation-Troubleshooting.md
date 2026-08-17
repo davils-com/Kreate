@@ -1,4 +1,4 @@
-# Troubleshooting
+# C-interop troubleshooting
 
 <link-summary>Diagnosing C-interop build failures.</link-summary>
 

@@ -1,4 +1,4 @@
-# Trivy Configuration Reference
+# Trivy configuration reference
 
 <link-summary>Every property in the trivy block.</link-summary>
 

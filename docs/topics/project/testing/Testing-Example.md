@@ -1,4 +1,4 @@
-# Examples
+# Testing examples
 
 <link-summary>Worked testing configuration examples.</link-summary>
 

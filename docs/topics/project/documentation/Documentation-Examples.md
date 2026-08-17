@@ -1,4 +1,4 @@
-# Examples
+# API documentation examples
 
 <link-summary>Worked Dokka configuration examples.</link-summary>
 

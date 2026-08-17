@@ -1,4 +1,4 @@
-# Configuration Reference
+# API documentation configuration
 
 <link-summary>Every property in the docs block.</link-summary>
 

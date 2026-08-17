@@ -1,4 +1,4 @@
-# Configuration Reference
+# Build constants configuration
 
 <link-summary>Every property in the buildConstant block.</link-summary>
 

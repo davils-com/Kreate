@@ -3,8 +3,7 @@
 <topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/topic.v2.xsd"
        id="Home"
-       title="Kreate"
-       is-library="false">
+       title="Kreate">
 
     <section-starting-page>
         <title>Kreate</title>
@@ -97,16 +96,16 @@
             <links narrow="true">
                 <group>
                     <title>Project</title>
-                    <a href="%repo%">Source code</a>
-                    <a href="%issues%">Issue tracker</a>
-                    <a href="%repo%/blob/main/CHANGELOG.md">Changelog</a>
-                    <a href="%repo%/blob/main/SECURITY.md">Security policy</a>
+                    <a href="%repo%" summary="The Kreate repository on GitHub.">Source code</a>
+                    <a href="%issues%" summary="Report a bug or request a feature.">Issue tracker</a>
+                    <a href="%repo%/blob/main/CHANGELOG.md" summary="What changed in each release.">Changelog</a>
+                    <a href="%repo%/blob/main/SECURITY.md" summary="How to report a vulnerability privately.">Security policy</a>
                 </group>
                 <group>
                     <title>Get involved</title>
-                    <a href="%repo%/blob/main/CONTRIBUTING.md">Contributing</a>
-                    <a href="%repo%/blob/main/CODE_OF_CONDUCT.md">Code of conduct</a>
-                    <a href="https://discord.com/invite/W25gFXDVFb">Discord</a>
+                    <a href="%repo%/blob/main/CONTRIBUTING.md" summary="How to propose a change.">Contributing</a>
+                    <a href="%repo%/blob/main/CODE_OF_CONDUCT.md" summary="The standards expected of participants.">Code of conduct</a>
+                    <a href="https://discord.com/invite/W25gFXDVFb" summary="Ask a question and talk to the maintainers.">Discord</a>
                 </group>
             </links>
         </misc>

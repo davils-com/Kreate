@@ -88,13 +88,17 @@ Use the <code>exclude</code> block in the <code>fileTree</code> of <code>sourceF
 To execute the secret scan individually, use the following Gradle command:
 
 <code-block lang="bash">
+<![CDATA[
 ./gradlew kreateTrivySecretScan
+]]>
 </code-block>
 
 Alternatively, the scan is automatically included when running the lifecycle task:
 
 <code-block lang="bash">
+<![CDATA[
 ./gradlew check
+]]>
 </code-block>
 
 <seealso>

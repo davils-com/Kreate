@@ -1,4 +1,4 @@
-# Publishing
+# Publishing overview
 
 <link-summary>Publishing signed artifacts to Maven Central and GitLab.</link-summary>
 

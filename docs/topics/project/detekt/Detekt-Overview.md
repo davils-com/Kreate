@@ -1,4 +1,4 @@
-# Detekt Static Analysis
+# Detekt overview
 
 <link-summary>Wiring Detekt into your build through Kreate.</link-summary>
 

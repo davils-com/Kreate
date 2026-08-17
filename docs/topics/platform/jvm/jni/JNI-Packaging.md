@@ -125,6 +125,7 @@ building on each platform and merging the results.
     <step>
         <p>Build on each target platform and publish the native output as a build artifact:</p>
         <code-block lang="yaml">
+<![CDATA[
             strategy:
               matrix:
                 os: [ubuntu-latest, macos-latest, windows-latest]
@@ -134,6 +135,7 @@ building on each platform and merging the results.
                 with:
                   name: natives-${{ matrix.os }}
                   path: my-module/build/jni/
+]]>
         </code-block>
     </step>
     <step>

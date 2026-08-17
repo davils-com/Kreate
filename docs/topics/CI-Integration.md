@@ -53,6 +53,7 @@ toolchain and assert it is present:
 ## GitHub Actions
 
 <code-block lang="yaml" collapsible="true" collapsed-title=".github/workflows/ci.yml">
+<![CDATA[
 name: CI
 
 on:
@@ -90,13 +91,14 @@ jobs:
 
       - name: Install CMake
         if: runner.os == 'Linux'
-        run: sudo apt-get update &amp;&amp; sudo apt-get install -y cmake
+        run: sudo apt-get update && sudo apt-get install -y cmake
 
       - name: Install CMake
         if: runner.os == 'macOS'
         run: brew install cmake
 
       - run: ./gradlew build --configuration-cache --stacktrace
+]]>
 </code-block>
 
 <tip>
@@ -127,6 +129,7 @@ failed.
 ## GitLab CI
 
 <code-block lang="yaml" collapsible="true" collapsed-title=".gitlab-ci.yml">
+<![CDATA[
 stages: [build, verify, publish]
 
 variables:
@@ -135,7 +138,7 @@ variables:
 default:
   image: eclipse-temurin:21-jdk
   before_script:
-    - apt-get update &amp;&amp; apt-get install -y cmake
+    - apt-get update && apt-get install -y cmake
     - cmake --version
 
 build:
@@ -153,10 +156,10 @@ build:
 security:
   stage: verify
   before_script:
-    - apt-get update &amp;&amp; apt-get install -y wget gnupg
+    - apt-get update && apt-get install -y wget gnupg
     - wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor > /usr/share/keyrings/trivy.gpg
     - echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" > /etc/apt/sources.list.d/trivy.list
-    - apt-get update &amp;&amp; apt-get install -y trivy
+    - apt-get update && apt-get install -y trivy
   script:
     - ./gradlew dependencies --write-locks
     - ./gradlew kreateTrivyScan
@@ -167,6 +170,7 @@ publish:
     - if: $CI_COMMIT_TAG
   script:
     - ./gradlew publish
+]]>
 </code-block>
 
 <note>

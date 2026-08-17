@@ -1,4 +1,4 @@
-# Examples
+# Publishing examples
 
 <link-summary>Worked publishing configuration examples.</link-summary>
 

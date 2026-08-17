@@ -36,7 +36,9 @@ To use the Trivy integration, the **Trivy CLI** must be installed on the executi
 <tab title="macOS">
 Install via Homebrew:
 <code-block lang="bash">
+<![CDATA[
 brew install trivy
+]]>
 </code-block>
 </tab>
 
@@ -135,7 +137,9 @@ build machines.
 After enabling locking or when changing dependencies, you must generate or update the lockfiles using the following command:
 
 <code-block lang="bash">
+<![CDATA[
 ./gradlew dependencies --write-locks
+]]>
 </code-block>
 
 <warning>
@@ -173,7 +177,9 @@ The most common way to run scans is through the standard Gradle `check` lifecycl
 
 To run all security checks:
 <code-block lang="bash">
+<![CDATA[
 ./gradlew kreateTrivyScan
+]]>
 </code-block>
 
 
@@ -182,17 +188,23 @@ If you want to perform only a specific type of scan, you can call the correspond
 
 **License Compliance:**
 <code-block lang="bash">
+<![CDATA[
 ./gradlew kreateTrivyLicenseScan
+]]>
 </code-block>
 
 **Vulnerability (CVE) Scanning:**
 <code-block lang="bash">
+<![CDATA[
 ./gradlew kreateTrivyVulnerabilityScan
+]]>
 </code-block>
 
 **Secret Detection:**
 <code-block lang="bash">
+<![CDATA[
 ./gradlew kreateTrivySecretScan
+]]>
 </code-block>
 
 <tip>

@@ -45,6 +45,7 @@ jni/
 ## The generated CMakeLists.txt
 
 <code-block lang="cmake" collapsible="true" collapsed-title="jni/my_module/CMakeLists.txt">
+<![CDATA[
 cmake_minimum_required(VERSION 3.20)
 project(my_module CXX)
 set(CMAKE_CXX_STANDARD 17)
@@ -64,6 +65,7 @@ target_include_directories(my_module PRIVATE
     ${KREATE_JNI_INCLUDE_DIRS}
 )
 target_link_libraries(my_module PRIVATE ${JNI_LIBRARIES})
+]]>
 </code-block>
 
 Each line earns its place:

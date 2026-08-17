@@ -1,4 +1,4 @@
-# Configuration Reference
+# C-interop configuration reference
 
 <link-summary>Every property in the cInterop block.</link-summary>
 

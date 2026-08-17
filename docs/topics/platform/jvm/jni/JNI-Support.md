@@ -65,6 +65,7 @@ compiled Kotlin, then building them with CMake against the JDK your build actual
     <step>
         <p>Enable the feature:</p>
         <code-block lang="kotlin">
+<![CDATA[
             kreate {
                 platform {
                     jvm {
@@ -74,11 +75,13 @@ compiled Kotlin, then building them with CMake against the JDK your build actual
                     }
                 }
             }
+]]>
         </code-block>
     </step>
     <step>
         <p>Declare the native function in Kotlin:</p>
         <code-block lang="kotlin">
+<![CDATA[
             package com.example
 
             class Native {
@@ -88,6 +91,7 @@ compiled Kotlin, then building them with CMake against the JDK your build actual
 
                 external fun greet(): String
             }
+]]>
         </code-block>
     </step>
     <step>
@@ -104,12 +108,14 @@ compiled Kotlin, then building them with CMake against the JDK your build actual
             header — that is what makes the compiler check you:
         </p>
         <code-block lang="c++">
+<![CDATA[
             #include "my_module_jni.h"
 
             JNIEXPORT jstring JNICALL
             Java_com_example_Native_greet(JNIEnv* env, jobject receiver) {
                 return env->NewStringUTF("Hello from C++");
             }
+]]>
         </code-block>
     </step>
     <step>

@@ -1,4 +1,4 @@
-# Examples
+# Build constants examples
 
 <link-summary>Worked examples of generated build constants.</link-summary>
 

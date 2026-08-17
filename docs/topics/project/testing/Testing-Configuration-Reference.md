@@ -1,4 +1,4 @@
-# Configuration Reference
+# Testing configuration reference
 
 <link-summary>Every property in the tests block.</link-summary>
 

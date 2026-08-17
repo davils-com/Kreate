@@ -1,4 +1,4 @@
-# Detekt Configuration Reference
+# Detekt configuration
 
 <link-summary>Every property in the detekt block.</link-summary>
 

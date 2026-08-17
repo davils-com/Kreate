@@ -61,13 +61,17 @@ Trivy's license classification is a technical aid and does not replace legal adv
 To execute the license scan individually, use the following Gradle command:
 
 <code-block lang="bash">
+<![CDATA[
 ./gradlew kreateTrivyLicenseScan
+]]>
 </code-block>
 
 Alternatively, the scan is automatically included when running the lifecycle task:
 
 <code-block lang="bash">
+<![CDATA[
 ./gradlew check
+]]>
 </code-block>
 
 <seealso>

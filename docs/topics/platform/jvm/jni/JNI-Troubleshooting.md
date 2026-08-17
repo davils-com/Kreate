@@ -1,4 +1,4 @@
-# Troubleshooting
+# JNI troubleshooting
 
 <link-summary>
 The native build failures you are most likely to hit, what each one means, and how to fix it.
@@ -155,10 +155,12 @@ or a message naming `cmake` as an unknown command.
     <step>
         <p>Point at it explicitly:</p>
         <code-block lang="kotlin">
+<![CDATA[
             jni {
                 enabled = true
                 cmakeExecutable = "/opt/homebrew/bin/cmake"
             }
+]]>
         </code-block>
     </step>
 </procedure>
