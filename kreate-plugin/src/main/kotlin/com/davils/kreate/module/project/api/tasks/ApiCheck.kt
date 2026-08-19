@@ -22,6 +22,7 @@ import com.davils.kreate.module.project.api.AbiDiff
 import com.davils.kreate.module.project.api.AbiExtractor
 import com.davils.kreate.module.project.api.AbiFilterOptions
 import com.davils.kreate.module.project.api.AbiRenderer
+import com.davils.kreate.module.project.api.readAbiDump
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -159,7 +160,7 @@ public abstract class ApiCheck : Task(
             )
         }
 
-        val diff = AbiDiff.render(expected = expectedFile.readText(), actual = actual)
+        val diff = AbiDiff.render(expected = readAbiDump(expectedFile), actual = actual)
             ?: return
 
         // Assembled line by line rather than as a raw string: `trimIndent` measures the

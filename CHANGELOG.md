@@ -15,7 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   differing lines and the command to regenerate the file. Kreate reads the bytecode itself with
   ASM, so nothing else has to be applied to the consumer's build, and the file format is the one
   the `binary-compatibility-validator` plugin writes — an existing `api/*.api` file carries over
-  unchanged. A test asserts that byte for byte against a dump the plugin produced.
+  unchanged, its line endings normalised on read so a Windows checkout that Git handed out with
+  CRLF does not read as an interface change. A test asserts that byte for byte against a dump
+  the plugin produced.
   Kotlin `internal` declarations are excluded via the class metadata, along with the default
   argument bridges that would otherwise outlive them, and so is compiler plumbing such as
   `access$` accessors and marker-only constructors. Declarations can also be hidden with an

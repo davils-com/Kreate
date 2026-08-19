@@ -1,0 +1,7 @@
+# The ABI dumps are compared byte for byte against freshly rendered text, and the
+# renderer always emits line feeds. Letting Git hand them out with CRLF on a Windows
+# checkout makes `kreateApiCheck` fail on a project whose interface did not change.
+*.api text eol=lf
+
+# The wrapper script is run by a POSIX shell, including on Windows under Git Bash.
+gradlew text eol=lf

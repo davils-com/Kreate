@@ -58,6 +58,6 @@ class AbiFormatCompatibilityTest {
             )
         )
 
-        actual shouldBe expectedDump.readText()
+        actual shouldBe readAbiDump(expectedDump)
     }
 }
