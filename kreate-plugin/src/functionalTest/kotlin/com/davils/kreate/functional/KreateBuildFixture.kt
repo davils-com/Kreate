@@ -36,6 +36,14 @@ class KreateBuildFixture(
 ) {
 
     /**
+     * Extra environment variables handed to the build.
+     *
+     * Kreate reads the CI coordinates of a publish target from the environment at
+     * configuration time, so a test that covers publishing has to be able to set them.
+     */
+    private val environment: MutableMap<String, String> = mutableMapOf()
+
+    /**
      * The native project directory used by the JNI tests.
      */
     val nativeProjectDirectory: File get() = rootDirectory.resolve("jni/sample")
@@ -121,6 +129,16 @@ class KreateBuildFixture(
     }
 
     /**
+     * Declares an environment variable for every subsequent build.
+     *
+     * @param name The variable name.
+     * @param value The variable value.
+     */
+    fun withEnvironment(name: String, value: String) {
+        environment[name] = value
+    }
+
+    /**
      * Reads a file below the project root.
      *
      * @param relativePath The path below the project root.
@@ -150,6 +168,12 @@ class KreateBuildFixture(
         .withArguments(arguments + listOf("--stacktrace", "--configuration-cache"))
         .forwardOutput()
         .let { runner -> gradleVersion?.let(runner::withGradleVersion) ?: runner }
+        // `withEnvironment` replaces the environment wholesale rather than adding to it, so the
+        // build would lose JAVA_HOME and PATH and never start. Only call it when a test asked
+        // for variables of its own.
+        .let { runner ->
+            if (environment.isEmpty()) runner else runner.withEnvironment(System.getenv() + environment)
+        }
 
     /**
      * Companion object holding shared fixture snippets.

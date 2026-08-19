@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.0.1
+
+A patch release for a single defect: publishing to the GitLab Package Registry never
+uploaded anything.
+
+### Fixed
+
+- **GitLab publishing produced no artifacts**. `configureGitlab` registered the repository and
+  then configured POM metadata through `publications.withType<MavenPublication>()`, but nothing
+  ever created a publication. `publish` is a lifecycle task, so with no
+  `PublishToMavenRepository` to depend on it reported `UP-TO-DATE` and the build passed —
+  green pipeline, empty registry. Kreate now registers a `maven` publication from the
+  project's `java` or `javaPlatform` component. A project that already declares a publication
+  of its own, including the one the Maven Central plugin creates, is left untouched.
+- **GitLab credentials could not authenticate**. The repository paired `PasswordCredentials`
+  with `HttpHeaderAuthentication`, which accepts `HttpHeaderCredentials` and nothing else.
+  This never surfaced because the defect above meant the repository was never used; with
+  publishing fixed it would have failed every upload. The job token is now passed as
+  `HttpHeaderCredentials` under the `Job-Token` header, as GitLab documents.
+- **Incomplete registry coordinates failed late and unreadably**. A missing project id or API
+  URL was interpolated into the URL as the literal `null`, and the build failed somewhere in
+  the transport layer. Both are now validated up front, naming the variables that are unset.
+- **Publications were missing outside CI**. The whole GitLab block returned early when no job
+  token was present, so a local `publishToMavenLocal` had nothing to publish either. Only the
+  remote repository now depends on the token; the publication is always registered.
+
+### Added
+
+- **Sources JAR for published libraries**. Projects with the `java` plugin get `withSourcesJar()`
+  when GitLab publishing is enabled. A `java-platform` is skipped — a BOM has no sources.
+- **Functional tests for publishing**. Four TestKit tests assert on the task graph rather than
+  the exit code, which is what the original defect required: the old build succeeded.
+
 ## 2.0.0
 
 A release focused on correctness. The JNI pipeline was rebuilt around a set of reproducible

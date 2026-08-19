@@ -72,10 +72,15 @@ publish { enabled = true }
 │
 └── repositories.gitlab { enabled = true }
 └── requires maven-publish plugin
+└── registers a `maven` publication unless the project declares one
 └── reads CI_JOB_TOKEN, CI_PROJECT_ID, CI_API_V4_URL from env
 └── registers Maven repository with HttpHeaderAuthentication
 └── configures pom { ... } on all MavenPublication tasks
 ```
+
+Only the GitLab target creates a publication, and only when the project has none — the
+Maven Central plugin brings its own. With both targets enabled they therefore share one
+publication rather than uploading the same coordinates twice.
 
 ## Top-Level Properties
 

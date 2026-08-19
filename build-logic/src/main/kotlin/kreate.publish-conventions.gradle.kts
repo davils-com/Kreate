@@ -21,7 +21,7 @@ plugins {
     signing
 }
 
-version = System.getenv("CI_COMMIT_TAG")?.removePrefix("v") ?: "2.0.0-SNAPSHOT"
+version = System.getenv("CI_COMMIT_TAG")?.removePrefix("v") ?: "2.0.1-SNAPSHOT"
 group = Project.Identity.GROUP
 
 mavenPublishing {
