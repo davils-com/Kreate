@@ -25,17 +25,6 @@ detekt {
     buildUponDefaultConfig = true
 }
 
-// Lock only the classpaths that actually ship. `lockAllConfigurations()` also locks build
-// tool internals — the Kotlin compiler classpath, Dokka's generator, Detekt's plugins — and a
-// vulnerability scan over that lockfile reports CVEs in a documentation tool's XML parser as if
-// they were vulnerabilities in the published artifact. Of 103 locked entries, 2 were shipped
-// dependencies.
-val scannedConfigurations = setOf("compileClasspath", "runtimeClasspath")
-
-configurations.matching { it.name in scannedConfigurations }.configureEach {
-    resolutionStrategy.activateDependencyLocking()
-}
-
 kreate {
     platform {
         javaVersion = JavaVersion.VERSION_17
@@ -135,6 +124,18 @@ kreate {
     project {
         name = "Example"
         description = "Example project"
+
+        dependencyLocking {
+            // Locks `compileClasspath` and `runtimeClasspath` only — see the property's
+            // documentation for why locking everything makes the Trivy scans below useless.
+            enabled = true
+        }
+
+        apiValidation {
+            // Records the public API in example/api/example.api. `kreateApiCheck` runs as
+            // part of `check`.
+            enabled = true
+        }
 
         version {
             environment = "CI_COMMIT_TAG"

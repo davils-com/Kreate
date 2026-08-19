@@ -16,9 +16,11 @@
 
 package com.davils.kreate.module.project
 
+import com.davils.kreate.module.project.api.extension.ApiValidationExtension
 import com.davils.kreate.module.project.constants.BuildConstantsExtension
 import com.davils.kreate.module.project.detekt.extension.DetektExtension
 import com.davils.kreate.module.project.docs.DocsExtension
+import com.davils.kreate.module.project.locking.extension.DependencyLockingExtension
 import com.davils.kreate.module.project.publish.extension.PublishExtension
 import com.davils.kreate.module.project.tests.TestsExtension
 import org.gradle.api.Action
@@ -131,6 +133,22 @@ public abstract class ProjectExtension @Inject constructor(
     public abstract val detekt: DetektExtension
 
     /**
+     * Configuration for binary compatibility validation.
+     *
+     * @since 2.1.0
+     */
+    @get:Nested
+    public abstract val apiValidation: ApiValidationExtension
+
+    /**
+     * Configuration for Gradle dependency locking.
+     *
+     * @since 2.1.0
+     */
+    @get:Nested
+    public abstract val dependencyLocking: DependencyLockingExtension
+
+    /**
      * Configures the [ProjectExtensionVersion] using the provided action.
      *
      * @param action The configuration action.
@@ -188,6 +206,26 @@ public abstract class ProjectExtension @Inject constructor(
      */
     public fun detekt(action: Action<DetektExtension>) {
         action.execute(detekt)
+    }
+
+    /**
+     * Configures the [ApiValidationExtension] using the provided action.
+     *
+     * @param action The configuration action.
+     * @since 2.1.0
+     */
+    public fun apiValidation(action: Action<ApiValidationExtension>) {
+        action.execute(apiValidation)
+    }
+
+    /**
+     * Configures the [DependencyLockingExtension] using the provided action.
+     *
+     * @param action The configuration action.
+     * @since 2.1.0
+     */
+    public fun dependencyLocking(action: Action<DependencyLockingExtension>) {
+        action.execute(dependencyLocking)
     }
 }
 

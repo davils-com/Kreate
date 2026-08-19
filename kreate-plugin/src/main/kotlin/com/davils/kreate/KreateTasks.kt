@@ -167,6 +167,51 @@ public object KreateTasks {
     }
 
     /**
+     * Names of the binary compatibility validation tasks.
+     *
+     * @since 2.1.0
+     */
+    public object ApiValidation {
+        /**
+         * Records the public binary interface in the checked-in `.api` dump. New in 2.1.0.
+         * @since 2.1.0
+         */
+        public const val DUMP: String = "kreateApiDump"
+
+        /**
+         * Verifies the public binary interface against the dump. New in 2.1.0.
+         * @since 2.1.0
+         */
+        public const val CHECK: String = "kreateApiCheck"
+
+        /**
+         * The task group for binary compatibility validation tasks.
+         * @since 2.1.0
+         */
+        public const val GROUP: String = "kreate api"
+    }
+
+    /**
+     * Names of the dependency locking tasks.
+     *
+     * @since 2.1.0
+     */
+    public object DependencyLocking {
+        /**
+         * Resolves every locked classpath so that `--write-locks` records all of them.
+         * New in 2.1.0.
+         * @since 2.1.0
+         */
+        public const val RESOLVE_AND_LOCK_ALL: String = "kreateResolveAndLockAll"
+
+        /**
+         * The task group for dependency locking tasks.
+         * @since 2.1.0
+         */
+        public const val GROUP: String = "kreate locking"
+    }
+
+    /**
      * Name of the build constants generation task.
      *
      * Was `kreate-build-constants` in 1.x.

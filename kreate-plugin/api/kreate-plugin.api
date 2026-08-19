@@ -21,6 +21,13 @@ public final class com/davils/kreate/KreateTasks {
 	public static final field INSTANCE Lcom/davils/kreate/KreateTasks;
 }
 
+public final class com/davils/kreate/KreateTasks$ApiValidation {
+	public static final field CHECK Ljava/lang/String;
+	public static final field DUMP Ljava/lang/String;
+	public static final field GROUP Ljava/lang/String;
+	public static final field INSTANCE Lcom/davils/kreate/KreateTasks$ApiValidation;
+}
+
 public final class com/davils/kreate/KreateTasks$CInterop {
 	public static final field COMPILE Ljava/lang/String;
 	public static final field CONFIGURE Ljava/lang/String;
@@ -30,6 +37,12 @@ public final class com/davils/kreate/KreateTasks$CInterop {
 	public static final field INITIALIZE Ljava/lang/String;
 	public static final field INSTANCE Lcom/davils/kreate/KreateTasks$CInterop;
 	public static final field SCRIPT Ljava/lang/String;
+}
+
+public final class com/davils/kreate/KreateTasks$DependencyLocking {
+	public static final field GROUP Ljava/lang/String;
+	public static final field INSTANCE Lcom/davils/kreate/KreateTasks$DependencyLocking;
+	public static final field RESOLVE_AND_LOCK_ALL Ljava/lang/String;
 }
 
 public final class com/davils/kreate/KreateTasks$Jni {
@@ -309,12 +322,16 @@ public abstract class com/davils/kreate/module/platform/multiplatform/cinterop/t
 
 public abstract class com/davils/kreate/module/project/ProjectExtension {
 	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun apiValidation (Lorg/gradle/api/Action;)V
 	public final fun buildConstant (Lorg/gradle/api/Action;)V
+	public final fun dependencyLocking (Lorg/gradle/api/Action;)V
 	public final fun detekt (Lorg/gradle/api/Action;)V
 	public final fun docs (Lorg/gradle/api/Action;)V
+	public abstract fun getApiValidation ()Lcom/davils/kreate/module/project/api/extension/ApiValidationExtension;
 	public final fun getApplyDefaultRepositories ()Lorg/gradle/api/provider/Property;
 	public final fun getApplySerializationPlugin ()Lorg/gradle/api/provider/Property;
 	public abstract fun getBuildConstants ()Lcom/davils/kreate/module/project/constants/BuildConstantsExtension;
+	public abstract fun getDependencyLocking ()Lcom/davils/kreate/module/project/locking/extension/DependencyLockingExtension;
 	public final fun getDescription ()Lorg/gradle/api/provider/Property;
 	public abstract fun getDetekt ()Lcom/davils/kreate/module/project/detekt/extension/DetektExtension;
 	public abstract fun getDocs ()Lcom/davils/kreate/module/project/docs/DocsExtension;
@@ -331,6 +348,39 @@ public abstract class com/davils/kreate/module/project/ProjectExtensionVersion {
 	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
 	public final fun getEnvironment ()Lorg/gradle/api/provider/Property;
 	public final fun getProperty ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/davils/kreate/module/project/api/extension/ApiValidationExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;Lorg/gradle/api/Project;)V
+	public final fun getApiDirectory ()Lorg/gradle/api/file/DirectoryProperty;
+	public final fun getDumpFileName ()Lorg/gradle/api/provider/Property;
+	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
+	public final fun getIgnoredClasses ()Lorg/gradle/api/provider/SetProperty;
+	public final fun getIgnoredPackages ()Lorg/gradle/api/provider/SetProperty;
+	public final fun getNonPublicMarkers ()Lorg/gradle/api/provider/SetProperty;
+}
+
+public abstract class com/davils/kreate/module/project/api/tasks/ApiCheck : com/davils/kreate/jobs/Task {
+	public fun <init> ()V
+	public final fun execute ()V
+	public abstract fun getActualDumpFile ()Lorg/gradle/api/file/RegularFileProperty;
+	public abstract fun getClassDirectories ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getDumpTaskPath ()Lorg/gradle/api/provider/Property;
+	public abstract fun getExpectedDumpFile ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getIgnoredClasses ()Lorg/gradle/api/provider/SetProperty;
+	public abstract fun getIgnoredPackages ()Lorg/gradle/api/provider/SetProperty;
+	public abstract fun getNonPublicMarkers ()Lorg/gradle/api/provider/SetProperty;
+	public abstract fun getProjectPath ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/davils/kreate/module/project/api/tasks/ApiDump : com/davils/kreate/jobs/Task {
+	public fun <init> ()V
+	public final fun execute ()V
+	public abstract fun getClassDirectories ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getDumpFile ()Lorg/gradle/api/file/RegularFileProperty;
+	public abstract fun getIgnoredClasses ()Lorg/gradle/api/provider/SetProperty;
+	public abstract fun getIgnoredPackages ()Lorg/gradle/api/provider/SetProperty;
+	public abstract fun getNonPublicMarkers ()Lorg/gradle/api/provider/SetProperty;
 }
 
 public abstract class com/davils/kreate/module/project/constants/BuildConstantsExtension {
@@ -404,6 +454,13 @@ public abstract class com/davils/kreate/module/project/docs/DocsExtension {
 	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
 	public final fun getModuleName ()Lorg/gradle/api/provider/Property;
 	public final fun getOutputDirectory ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/davils/kreate/module/project/locking/extension/DependencyLockingExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
+	public final fun getLockAllConfigurations ()Lorg/gradle/api/provider/Property;
+	public final fun getLockedClasspaths ()Lorg/gradle/api/provider/SetProperty;
 }
 
 public abstract class com/davils/kreate/module/project/publish/extension/PublishExtension {

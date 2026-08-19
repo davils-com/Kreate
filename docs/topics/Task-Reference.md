@@ -146,10 +146,56 @@ Registered when `trivy.enabled` is `true`.
 
 <warning>
 The vulnerability and licence scans read Gradle dependency lock files. Without them the scans
-have nothing to inspect and skip with a message telling you to run
-<code>./gradlew dependencies --write-locks</code>. Enable locking with
-<code>dependencyLocking { lockAllConfigurations() }</code>.
+have nothing to inspect. Enable Kreate's locking feature with
+<code>project { dependencyLocking { enabled = true } }</code> and write the lock files with
+<code>./gradlew kreateResolveAndLockAll --write-locks</code>. See
+<a href="Dependency-Locking.md">Dependency locking</a>.
 </warning>
+
+## API validation
+
+Registered when `project.apiValidation.enabled` is `true`. See
+[Binary compatibility validation](API-Validation-Overview.md).
+
+<table>
+    <tr>
+        <td>Task</td>
+        <td>Purpose</td>
+        <td>Outputs</td>
+    </tr>
+    <tr>
+        <td><code>kreateApiDump</code></td>
+        <td>Records the public binary interface. Commit the result.</td>
+        <td><code>api/&lt;project&gt;.api</code></td>
+    </tr>
+    <tr>
+        <td><code>kreateApiCheck</code></td>
+        <td>Fails when the interface no longer matches the dump. Runs as part of <code>check</code>.</td>
+        <td><code>build/kreate/api/&lt;project&gt;.api</code></td>
+    </tr>
+</table>
+
+## Dependency locking
+
+Registered when `project.dependencyLocking.enabled` is `true`. See
+[Dependency locking](Dependency-Locking.md).
+
+<table>
+    <tr>
+        <td>Task</td>
+        <td>Purpose</td>
+        <td>Outputs</td>
+    </tr>
+    <tr>
+        <td><code>kreateResolveAndLockAll</code></td>
+        <td>
+            Resolves every locked classpath so that <code>--write-locks</code> records all of
+            them. Requires <code>--write-locks</code> and is not compatible with the
+            configuration cache.
+        </td>
+        <td><code>gradle.lockfile</code></td>
+    </tr>
+</table>
 
 ## Build constants
 

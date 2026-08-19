@@ -94,3 +94,13 @@ jobs:
             echo "::error::The public API changed. Run './gradlew apiDump' and commit kreate-plugin/api/kreate-plugin.api."
             exit 1
           }
+
+      # Runs the feature Kreate ships rather than the plugin that inspired it. The example
+      # project's dump is written by Kreate's own ASM based extractor, so a regression in
+      # it fails here instead of in a consumer's build.
+      - name: Check the example project's API dump is up to date
+        run: |
+          ./gradlew :example:kreateApiCheck --stacktrace || {
+            echo "::error::The example project's API changed. Run './gradlew :example:kreateApiDump' and commit example/api/example.api."
+            exit 1
+          }

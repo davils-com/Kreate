@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.1.0
+
+Two features that were previously part of Kreate's own build only, and are now offered to the
+projects that use it.
+
+### Added
+
+- **Binary compatibility validation**. `kreate { project { apiValidation { enabled = true } } }`
+  registers `kreateApiDump` and `kreateApiCheck`. The dump records every public and protected
+  declaration of the compiled classes; the check runs as part of `check` and fails with the
+  differing lines and the command to regenerate the file. Kreate reads the bytecode itself with
+  ASM, so nothing else has to be applied to the consumer's build, and the file format is the one
+  the `binary-compatibility-validator` plugin writes — an existing `api/*.api` file carries over
+  unchanged. A test asserts that byte for byte against a dump the plugin produced.
+  Kotlin `internal` declarations are excluded via the class metadata, along with the default
+  argument bridges that would otherwise outlive them, and so is compiler plumbing such as
+  `access$` accessors and marker-only constructors. Declarations can also be hidden with an
+  annotation of your own through `nonPublicMarkers`, or excluded by package or class name.
+- **Dependency locking**. `kreate { project { dependencyLocking { enabled = true } } }` activates
+  locking and registers `kreateResolveAndLockAll`, which resolves every locked classpath in one
+  invocation. `--write-locks` records only the configurations a build actually resolves, so
+  running it against an arbitrary task writes a lock file that looks complete and is not; the
+  Trivy scans read those files, which is where an incomplete one does real damage. The default
+  locks `compileClasspath` and `runtimeClasspath` rather than everything, because locking the
+  build tools too makes a vulnerability scan report CVEs in a documentation tool's XML parser as
+  though they were vulnerabilities in the published artifact — 2 of 103 entries were shipped
+  dependencies in the measurement behind that default.
+
+### Changed
+
+- **Lock files are no longer ignored by Git**. `*.lockfile` was in `.gitignore`, which is why the
+  repository had none. Gradle writes "This file is expected to be part of source control" into
+  every lock file it generates, and a lock file that cannot be committed locks nothing.
+- **The Trivy workflow writes its locks with `kreateResolveAndLockAll`** rather than
+  `:example:dependencies --write-locks`, which did not resolve every locked classpath.
+- **The example project uses both new features** instead of the hand-written locking block it
+  carried before, and its API dump is checked in CI.
+
 ## 2.0.1
 
 A patch release for a single defect: publishing to the GitLab Package Registry never

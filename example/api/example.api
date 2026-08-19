@@ -1,0 +1,21 @@
+public final class com/davils/example/JNI {
+	public fun <init> ()V
+	public final fun hello ()Ljava/lang/String;
+}
+
+public final class com/davils/example/JNIKt {
+	public static final fun main ()V
+	public static synthetic fun main ([Ljava/lang/String;)V
+}
+
+public final class com/example/example/build/ExampleConstants {
+	public static final field EXAMPLE Ljava/lang/String;
+	public static final field EXAMPLE2 Ljava/lang/String;
+	public static final field INSTANCE Lcom/example/example/build/ExampleConstants;
+}
+
+public final class com/example/example/jni/KreateNativeLoader {
+	public static final field INSTANCE Lcom/example/example/jni/KreateNativeLoader;
+	public final fun load (Ljava/lang/String;)V
+}
+

@@ -81,6 +81,29 @@ Kreate reacts to the Kotlin plugin you applied rather than guessing at your proj
 - **Distributable artifacts**: optionally package the shared library into your JAR with a generated
   loader, so consumers need no `java.library.path` setup.
 
+### Binary Compatibility Validation
+
+- **A dump you review**: `kreateApiDump` records every public and protected declaration of your
+  compiled classes in a file you commit; `kreateApiCheck` runs as part of `check` and fails the
+  build when the two disagree. A removed overload or a widened return type becomes a line in a
+  diff rather than a bug report from a consumer.
+- **No extra plugin**: Kreate reads the bytecode itself with ASM, so there is no plugin to apply
+  and no version to keep in step with your Kotlin release.
+- **Kotlin aware**: `internal` declarations are excluded even though the bytecode calls them
+  public, along with the bridges generated for their default arguments — otherwise a rename
+  inside your module would read as a breaking change.
+- **Drop-in format**: the dump is the one the `binary-compatibility-validator` plugin writes, so
+  an existing `api/*.api` file carries over untouched.
+
+### Dependency Locking
+
+- **Reproducible resolution**: pins resolved versions in a committed `gradle.lockfile`.
+- **A complete lock file**: `kreateResolveAndLockAll --write-locks` resolves every locked
+  classpath in one invocation. `--write-locks` on its own records only what the build happened
+  to resolve, which produces a lock file that looks complete and is not.
+- **Scoped by default**: locks `compileClasspath` and `runtimeClasspath` rather than everything,
+  so a vulnerability scan reports on what you ship instead of on Dokka's XML parser.
+
 ### C-Interoperability (Kotlin/Native)
 
 - **Multi-language**: Rust via Cargo, C and C++ via CMake.
@@ -187,6 +210,8 @@ kreate {
 ./gradlew kreateJniBuild            # build the native library
 ./gradlew kreateTrivyScan           # run all enabled security scans
 ./gradlew kreateBuildConstants      # regenerate build constants
+./gradlew kreateApiDump             # record the public binary interface
+./gradlew kreateResolveAndLockAll --write-locks   # write the dependency lock file
 ```
 
 ---
@@ -211,6 +236,8 @@ kreate {
 | `project.docs`                    | `enabled`                  | Dokka documentation                        | `false`      |
 | `project.tests`                   | `enabled`                  | Test execution and reporting               | `true`       |
 | `project.detekt`                  | `enabled`                  | Static analysis configuration              | `false`      |
+| `project.apiValidation`           | `enabled`                  | Binary compatibility validation            | `false`      |
+| `project.dependencyLocking`       | `enabled`                  | Gradle dependency locking                  | `false`      |
 | `project.publish`                 | `enabled`                  | Maven Central / GitLab publishing          | `false`      |
 | `trivy`                           | `enabled`                  | Security and compliance scanning           | `false`      |
 

@@ -24,6 +24,10 @@ davilsx-kore = { module = "com.davils:davilsx-kore", version.ref = "kore" }
 
 asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
 
+# Reads the `kotlin.Metadata` annotation so that ABI validation can tell a Kotlin
+# `internal` declaration from a genuinely public one — both are `public` in bytecode.
+kotlin-metadata-jvm = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin" }
+
 # detekt rule sets applied to the plugin's own sources via `detektPlugins`
 detekt-rules-ktlintWrapper = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
 detekt-rules-libraries = { module = "dev.detekt:detekt-rules-libraries", version.ref = "detekt" }
@@ -56,6 +60,7 @@ build-logic = [
 kreate-plugin = [
     "poet-core",
     "asm-core",
+    "kotlin-metadata-jvm",
     "davilsx-kore",
     "kotlin-gradle-plugin",
     "dokka-gradle-plugin",

@@ -16,7 +16,6 @@ build/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-*.lockfile
 .junie/memory
 
 ### Eclipse ###
@@ -43,6 +42,15 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# Gradle dependency lock files are deliberately not ignored: they are the record of
+# which versions a build resolves, they are what the Trivy scans read, and Gradle
+# itself writes "This file is expected to be part of source control" into them.
+#
+# The root settings lock file is the exception. The root build declares no locking, so
+# running --write-locks anywhere in the composite leaves behind a file whose only entry is
+# the version catalog placeholder.
+/settings-gradle.lockfile
 
 ### example ###
 example/cinterop/example/target

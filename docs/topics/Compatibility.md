@@ -109,8 +109,9 @@ directories for exactly this reason, but an unusual location still needs an expl
     </def>
     <def title="Kotlin Multiplatform">
         Fully supported. <a href="C-Interoperation-Overview.md">C-interop</a> applies to the
-        native targets; <a href="JNI-Support.md">JNI</a> applies to the JVM target only and
-        leaves the other targets untouched.
+        native targets; <a href="JNI-Support.md">JNI</a> and
+        <a href="API-Validation-Overview.md">API validation</a> apply to the JVM target only and
+        leave the other targets untouched.
     </def>
     <def title="Neither">
         The <code>trivy</code> block still works. It is deliberately independent of the platform

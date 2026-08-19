@@ -18,9 +18,11 @@ package com.davils.kreate.module.project
 
 import com.davils.kreate.KreateExtension
 import com.davils.kreate.module.Module
+import com.davils.kreate.module.project.api.initializeApiValidation
 import com.davils.kreate.module.project.constants.initializeBuildConstants
 import com.davils.kreate.module.project.detekt.initializeDetekt
 import com.davils.kreate.module.project.docs.initializeDocs
+import com.davils.kreate.module.project.locking.initializeDependencyLocking
 import com.davils.kreate.module.project.publish.initializePublish
 import com.davils.kreate.module.project.tests.initializeTesting
 import org.gradle.api.Project
@@ -53,6 +55,10 @@ internal object ProjectModule : Module {
             applyDefaultGradlePlugins(extension.project)
             addRepositories(extension.project)
 
+            // Locking has to be activated before anything resolves a configuration, so it
+            // runs ahead of the features that do.
+            initializeDependencyLocking(extension)
+
             configureVersion(
                 env = extension.project.version.environment.get(),
                 prop = extension.project.version.property.get()
@@ -63,6 +69,7 @@ internal object ProjectModule : Module {
             initializeTesting(extension)
             initializePublish(extension)
             initializeDetekt(extension)
+            initializeApiValidation(extension)
         }
     }
 }

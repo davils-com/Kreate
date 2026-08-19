@@ -143,8 +143,10 @@ jobs:
           trivy --version
 
       # The plugin's scan tasks consume dependency lock files, so they have to exist first.
+      # `--write-locks` only records what a build actually resolves, and the `dependencies`
+      # report does not resolve every locked classpath; the task Kreate registers does.
       - name: Write dependency locks
-        run: ./gradlew :example:dependencies --write-locks --stacktrace
+        run: ./gradlew :example:kreateResolveAndLockAll --write-locks --stacktrace
 
       # Runs the feature Kreate ships, not a third-party action. If the plugin's own Trivy
       # integration breaks, this job is what notices.
