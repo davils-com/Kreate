@@ -29,7 +29,7 @@ import java.io.File
  *
  * @param file The dump to read.
  * @return The dump text with `\r\n` and lone `\r` replaced by `\n`.
- * @since 2.1.0
+ * @since 2.1.1
  */
 internal fun readAbiDump(file: File): String =
     file.readText().replace("\r\n", "\n").replace('\r', '\n')
