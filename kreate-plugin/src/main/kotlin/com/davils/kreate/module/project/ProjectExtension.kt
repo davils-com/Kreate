@@ -17,6 +17,7 @@
 package com.davils.kreate.module.project
 
 import com.davils.kreate.module.project.api.extension.ApiValidationExtension
+import com.davils.kreate.module.project.benchmark.extension.BenchmarkExtension
 import com.davils.kreate.module.project.constants.BuildConstantsExtension
 import com.davils.kreate.module.project.detekt.extension.DetektExtension
 import com.davils.kreate.module.project.docs.DocsExtension
@@ -149,6 +150,14 @@ public abstract class ProjectExtension @Inject constructor(
     public abstract val dependencyLocking: DependencyLockingExtension
 
     /**
+     * Configuration for JMH based benchmarks.
+     *
+     * @since 2.2.0
+     */
+    @get:Nested
+    public abstract val benchmark: BenchmarkExtension
+
+    /**
      * Configures the [ProjectExtensionVersion] using the provided action.
      *
      * @param action The configuration action.
@@ -226,6 +235,16 @@ public abstract class ProjectExtension @Inject constructor(
      */
     public fun dependencyLocking(action: Action<DependencyLockingExtension>) {
         action.execute(dependencyLocking)
+    }
+
+    /**
+     * Configures the [BenchmarkExtension] using the provided action.
+     *
+     * @param action The configuration action.
+     * @since 2.2.0
+     */
+    public fun benchmark(action: Action<BenchmarkExtension>) {
+        action.execute(benchmark)
     }
 }
 

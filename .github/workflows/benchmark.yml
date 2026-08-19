@@ -1,0 +1,62 @@
+name: Benchmark
+
+# Deliberately not run on push or pull request.
+#
+# A benchmark takes minutes, and its result is only comparable against runs from the same
+# machine. Shared GitHub runners move by tens of per cent between identical runs, so a gate
+# wired into every pull request would report noise, and a gate that reports noise gets
+# switched off. Run it on a schedule to spot a trend, and by hand when a change is expected
+# to move the numbers.
+on:
+  schedule:
+    # Sundays at 04:00 UTC, when the runner pool is least contended.
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  benchmark:
+    name: Regression gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          validate-wrappers: true
+
+      # Runs the feature Kreate ships against Kreate's own example project: the source set
+      # scaffolding, the allopen wiring, the report normalization and the comparison. A
+      # regression in any of those fails here rather than in a consumer's build.
+      - name: Run the benchmark regression gate
+        run: ./gradlew :example:kreateBenchmarkCheck --stacktrace
+
+      # Kept regardless of the outcome — a passing run is the record of what was measured,
+      # and a failing one is worth reading in full.
+      - name: Upload the comparison report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: benchmark-comparison
+          path: |
+            example/build/reports/kreate/benchmark/
+          retention-days: 30
+          if-no-files-found: warn

@@ -1,0 +1,12 @@
+[
+  {
+    "benchmark" : "com.davils.example.SampleBenchmark.sum",
+    "mode" : "thrpt",
+    "params" : {  },
+    "primaryMetric" : {
+      "score" : 2.5638331814905707E7,
+      "scoreError" : "NaN",
+      "scoreUnit" : "ops/s"
+    }
+  }
+]

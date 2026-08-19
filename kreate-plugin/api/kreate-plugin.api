@@ -28,6 +28,14 @@ public final class com/davils/kreate/KreateTasks$ApiValidation {
 	public static final field INSTANCE Lcom/davils/kreate/KreateTasks$ApiValidation;
 }
 
+public final class com/davils/kreate/KreateTasks$Benchmark {
+	public static final field BASELINE Ljava/lang/String;
+	public static final field CHECK Ljava/lang/String;
+	public static final field GROUP Ljava/lang/String;
+	public static final field INSTANCE Lcom/davils/kreate/KreateTasks$Benchmark;
+	public static final field REPORT Ljava/lang/String;
+}
+
 public final class com/davils/kreate/KreateTasks$CInterop {
 	public static final field COMPILE Ljava/lang/String;
 	public static final field CONFIGURE Ljava/lang/String;
@@ -323,6 +331,7 @@ public abstract class com/davils/kreate/module/platform/multiplatform/cinterop/t
 public abstract class com/davils/kreate/module/project/ProjectExtension {
 	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
 	public final fun apiValidation (Lorg/gradle/api/Action;)V
+	public final fun benchmark (Lorg/gradle/api/Action;)V
 	public final fun buildConstant (Lorg/gradle/api/Action;)V
 	public final fun dependencyLocking (Lorg/gradle/api/Action;)V
 	public final fun detekt (Lorg/gradle/api/Action;)V
@@ -330,6 +339,7 @@ public abstract class com/davils/kreate/module/project/ProjectExtension {
 	public abstract fun getApiValidation ()Lcom/davils/kreate/module/project/api/extension/ApiValidationExtension;
 	public final fun getApplyDefaultRepositories ()Lorg/gradle/api/provider/Property;
 	public final fun getApplySerializationPlugin ()Lorg/gradle/api/provider/Property;
+	public abstract fun getBenchmark ()Lcom/davils/kreate/module/project/benchmark/extension/BenchmarkExtension;
 	public abstract fun getBuildConstants ()Lcom/davils/kreate/module/project/constants/BuildConstantsExtension;
 	public abstract fun getDependencyLocking ()Lcom/davils/kreate/module/project/locking/extension/DependencyLockingExtension;
 	public final fun getDescription ()Lorg/gradle/api/provider/Property;
@@ -381,6 +391,82 @@ public abstract class com/davils/kreate/module/project/api/tasks/ApiDump : com/d
 	public abstract fun getIgnoredClasses ()Lorg/gradle/api/provider/SetProperty;
 	public abstract fun getIgnoredPackages ()Lorg/gradle/api/provider/SetProperty;
 	public abstract fun getNonPublicMarkers ()Lorg/gradle/api/provider/SetProperty;
+}
+
+public abstract class com/davils/kreate/module/project/benchmark/extension/BenchmarkExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;Lorg/gradle/api/Project;)V
+	public final fun getApplyAllOpen ()Lorg/gradle/api/provider/Property;
+	public final fun getCreateSourceSet ()Lorg/gradle/api/provider/Property;
+	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
+	public final fun getJmhVersion ()Lorg/gradle/api/provider/Property;
+	public final fun getProfiles ()Lorg/gradle/api/NamedDomainObjectContainer;
+	public abstract fun getRegression ()Lcom/davils/kreate/module/project/benchmark/extension/BenchmarkRegressionExtension;
+	public final fun getRuntimeVersion ()Lorg/gradle/api/provider/Property;
+	public final fun getSourceSetName ()Lorg/gradle/api/provider/Property;
+	public final fun profiles (Lorg/gradle/api/Action;)V
+	public final fun regression (Lorg/gradle/api/Action;)V
+}
+
+public abstract class com/davils/kreate/module/project/benchmark/extension/BenchmarkProfileExtension {
+	public fun <init> (Ljava/lang/String;Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun advanced (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun exclude (Ljava/lang/String;)V
+	public final fun getAdvanced ()Lorg/gradle/api/provider/MapProperty;
+	public final fun getExcludes ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getIncludes ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getIterationTime ()Lorg/gradle/api/provider/Property;
+	public final fun getIterationTimeUnit ()Lorg/gradle/api/provider/Property;
+	public final fun getIterations ()Lorg/gradle/api/provider/Property;
+	public final fun getMode ()Lorg/gradle/api/provider/Property;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getOutputTimeUnit ()Lorg/gradle/api/provider/Property;
+	public final fun getParams ()Lorg/gradle/api/provider/MapProperty;
+	public final fun getReportFormat ()Lorg/gradle/api/provider/Property;
+	public final fun getWarmups ()Lorg/gradle/api/provider/Property;
+	public final fun include (Ljava/lang/String;)V
+	public final fun param (Ljava/lang/String;[Ljava/lang/String;)V
+}
+
+public abstract class com/davils/kreate/module/project/benchmark/extension/BenchmarkRegressionExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;Lorg/gradle/api/Project;)V
+	public final fun getBaselineFile ()Lorg/gradle/api/file/RegularFileProperty;
+	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
+	public final fun getFailOnMissingBenchmark ()Lorg/gradle/api/provider/Property;
+	public final fun getMaxRegressionPercent ()Lorg/gradle/api/provider/Property;
+	public final fun getProfile ()Lorg/gradle/api/provider/Property;
+	public final fun getRequireSignificance ()Lorg/gradle/api/provider/Property;
+	public final fun getThresholdOverrides ()Lorg/gradle/api/provider/MapProperty;
+}
+
+public abstract class com/davils/kreate/module/project/benchmark/tasks/BenchmarkBaseline : com/davils/kreate/jobs/Task {
+	public fun <init> ()V
+	public final fun execute ()V
+	public abstract fun getBaselineFile ()Lorg/gradle/api/file/RegularFileProperty;
+	public abstract fun getNormalizedReports ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getProfile ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/davils/kreate/module/project/benchmark/tasks/BenchmarkCheck : com/davils/kreate/jobs/Task {
+	public fun <init> ()V
+	public final fun execute ()V
+	public abstract fun getBaselineFile ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getBaselineTaskPath ()Lorg/gradle/api/provider/Property;
+	public abstract fun getComparisonReportFile ()Lorg/gradle/api/file/RegularFileProperty;
+	public abstract fun getFailOnMissingBenchmark ()Lorg/gradle/api/provider/Property;
+	public abstract fun getMaxRegressionPercent ()Lorg/gradle/api/provider/Property;
+	public abstract fun getNormalizedReports ()Lorg/gradle/api/file/ConfigurableFileCollection;
+	public abstract fun getProfile ()Lorg/gradle/api/provider/Property;
+	public abstract fun getProjectPath ()Lorg/gradle/api/provider/Property;
+	public abstract fun getRequireSignificance ()Lorg/gradle/api/provider/Property;
+	public abstract fun getThresholdOverrides ()Lorg/gradle/api/provider/MapProperty;
+}
+
+public abstract class com/davils/kreate/module/project/benchmark/tasks/NormalizeBenchmarkReport : com/davils/kreate/jobs/Task {
+	public fun <init> ()V
+	public final fun execute ()V
+	public abstract fun getNormalizedDirectory ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getProfile ()Lorg/gradle/api/provider/Property;
+	public abstract fun getTimestampedReportsDirectory ()Lorg/gradle/api/file/DirectoryProperty;
 }
 
 public abstract class com/davils/kreate/module/project/constants/BuildConstantsExtension {

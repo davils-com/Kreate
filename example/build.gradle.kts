@@ -7,6 +7,7 @@ import java.time.Year
 plugins {
     alias(libs.plugins.kreate)
     id("dev.detekt") version "2.0.0-alpha.6"
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.17"
     kotlin("jvm") version "2.4.10"
     application
 }
@@ -18,9 +19,6 @@ application {
 group = "com.example"
 
 detekt {
-    // Detekt would otherwise auto-discover config/detekt/detekt.yml from the repository
-    // root, which is Kreate's own strict configuration and needs rule set plugins that a
-    // consumer does not have.
     config.setFrom(rootProject.file("config/detekt/detekt-consumer.yml"))
     buildUponDefaultConfig = true
 }
@@ -34,7 +32,6 @@ kreate {
         multiplatform {
             cInterop {
                 enabled = false
-                // Selects the native interop language: RUST (default), C or CPP.
                 language = NativeLanguage.RUST
                 nameOverride = "example"
                 projectDirectory = file("cinterop")
@@ -70,14 +67,10 @@ kreate {
                 libraryIncludePaths = listOf()
 
                 headers {
-                    // Generates example_jni.h from the `external` declarations in JNI.kt.
                     enabled = true
                 }
 
                 packaging {
-                    // Puts libexample.so into the JAR under natives/<os>-<arch>/ and
-                    // generates KreateNativeLoader so the artifact works without
-                    // -Djava.library.path.
                     enabled = true
                     generateLoader = true
                 }
@@ -126,15 +119,29 @@ kreate {
         description = "Example project"
 
         dependencyLocking {
-            // Locks `compileClasspath` and `runtimeClasspath` only — see the property's
-            // documentation for why locking everything makes the Trivy scans below useless.
             enabled = true
         }
 
         apiValidation {
-            // Records the public API in example/api/example.api. `kreateApiCheck` runs as
-            // part of `check`.
             enabled = true
+        }
+
+        benchmark {
+            enabled = true
+
+            profiles {
+                named("main") {
+                    warmups = 1
+                    iterations = 2
+                    iterationTime = 250
+                    iterationTimeUnit = "ms"
+                    advanced("jvmForks", "1")
+                }
+            }
+
+            regression {
+                maxRegressionPercent = 200.0
+            }
         }
 
         version {

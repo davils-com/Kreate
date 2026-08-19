@@ -175,6 +175,34 @@ Registered when `project.apiValidation.enabled` is `true`. See
     </tr>
 </table>
 
+## Benchmarks
+
+Registered when `project.benchmark.enabled` is `true`. None of these is wired into `check`
+or `build`. See [Benchmarks](Benchmark-Overview.md).
+
+<table>
+    <tr>
+        <td>Task</td>
+        <td>Purpose</td>
+        <td>Outputs</td>
+    </tr>
+    <tr>
+        <td><code>kreateBenchmarkReport</code></td>
+        <td>Copies the newest kotlinx-benchmark run to a path other tasks can depend on.</td>
+        <td><code>build/reports/kreate/benchmark/&lt;profile&gt;/</code></td>
+    </tr>
+    <tr>
+        <td><code>kreateBenchmarkBaseline</code></td>
+        <td>Records the current results as the baseline. Commit the file.</td>
+        <td><code>benchmarks/baseline.json</code></td>
+    </tr>
+    <tr>
+        <td><code>kreateBenchmarkCheck</code></td>
+        <td>Runs the benchmarks and fails when one got measurably slower.</td>
+        <td><code>build/reports/kreate/benchmark/comparison.md</code></td>
+    </tr>
+</table>
+
 ## Dependency locking
 
 Registered when `project.dependencyLocking.enabled` is `true`. See
@@ -244,7 +272,7 @@ Tasks are grouped so that `./gradlew tasks` stays readable.
     </def>
 </deflist>
 
-<include from="lib.topic" element-id="config-cache-note"/>
+<include from="lib.topic" element-id="config-cache-note"></include>
 
 <seealso>
     <category ref="reference">

@@ -16,6 +16,7 @@
 
 import com.davils.buildlogic.Project
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -25,15 +26,38 @@ plugins {
     id("kreate.publish-conventions")
 }
 
+/**
+ * Carries kotlinx-benchmark into the TestKit plugin classpath.
+ *
+ * The functional builds have to apply the plugin without a version. Resolving it from the
+ * Plugin Portal instead would give it a classloader of its own, which cannot see the Kotlin
+ * Gradle plugin TestKit injects, and kotlinx-benchmark fails on `KotlinBasePlugin`.
+ */
+val benchmarkTestPlugin: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
 dependencies {
     implementation(gradleApi())
     implementation(libs.bundles.kreate.plugin)
 
+    // Kreate configures kotlinx-benchmark but never applies it, so it compiles against the
+    // plugin's types without shipping them. The consumer's own `id("...benchmark")` supplies
+    // the classes at runtime, which is why the presence check in the benchmark module goes
+    // through the plugin id rather than a class literal — a class literal would load a type
+    // that is not on the runtime classpath.
+    compileOnly(libs.benchmark.gradle.plugin)
+
     testImplementation(platform(libs.junit.bom))
     testImplementation(gradleTestKit())
     testImplementation(libs.bundles.kreate.test)
+    testImplementation(libs.benchmark.gradle.plugin)
     testRuntimeOnly(libs.junit.platform.launcher)
+
+    benchmarkTestPlugin(libs.benchmark.gradle.plugin)
 }
+
 
 /**
  * TestKit based tests live in their own source set so that a slow, tool dependent
@@ -45,6 +69,10 @@ configurations[functionalTest.implementationConfigurationName]
     .extendsFrom(configurations.testImplementation.get())
 configurations[functionalTest.runtimeOnlyConfigurationName]
     .extendsFrom(configurations.testRuntimeOnly.get())
+
+tasks.named<PluginUnderTestMetadata>("pluginUnderTestMetadata") {
+    pluginClasspath.from(benchmarkTestPlugin)
+}
 
 gradlePlugin {
     vcsUrl = Project.VersionControl.SCM_URL
@@ -81,7 +109,14 @@ val functionalTestTask = tasks.register<Test>("functionalTest") {
 
     testClassesDirs = functionalTest.output.classesDirs
     classpath = functionalTest.runtimeClasspath
-    useJUnitPlatform()
+
+    useJUnitPlatform {
+        // One functional test runs a real JMH benchmark end to end, which costs far more
+        // than the rest of the suite combined. It earns its place — nothing else proves
+        // that scaffolding, allopen and JMH generation fit together — but a developer
+        // iterating on something unrelated should be able to leave it out.
+        if (providers.gradleProperty("kreate.test.skipSlow").isPresent) excludeTags("slow")
+    }
 
     systemProperty("kreate.test.gradleVersion", gradle.gradleVersion)
     systemProperty("kreate.test.minGradleVersion", Project.Compatibility.MIN_GRADLE_VERSION)

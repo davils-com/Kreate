@@ -192,6 +192,40 @@ public object KreateTasks {
     }
 
     /**
+     * Names of the benchmark tasks.
+     *
+     * None of these is wired into `check` or `build`. A benchmark run takes minutes, and
+     * attaching it to the ordinary build is the surest way to get it switched off.
+     *
+     * @since 2.2.0
+     */
+    public object Benchmark {
+        /**
+         * Copies the newest benchmark report to a stable location. New in 2.2.0.
+         * @since 2.2.0
+         */
+        public const val REPORT: String = "kreateBenchmarkReport"
+
+        /**
+         * Records the current results as the committed baseline. New in 2.2.0.
+         * @since 2.2.0
+         */
+        public const val BASELINE: String = "kreateBenchmarkBaseline"
+
+        /**
+         * Compares the current results against the baseline. New in 2.2.0.
+         * @since 2.2.0
+         */
+        public const val CHECK: String = "kreateBenchmarkCheck"
+
+        /**
+         * The task group for benchmark tasks.
+         * @since 2.2.0
+         */
+        public const val GROUP: String = "kreate benchmark"
+    }
+
+    /**
      * Names of the dependency locking tasks.
      *
      * @since 2.1.0

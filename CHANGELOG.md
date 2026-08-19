@@ -7,9 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 2.1.0
 
-Two features that were previously part of Kreate's own build only, and are now offered to the
-projects that use it.
-
 ### Added
 
 - **Binary compatibility validation**. `kreate { project { apiValidation { enabled = true } } }`
@@ -32,6 +29,32 @@ projects that use it.
   build tools too makes a vulnerability scan report CVEs in a documentation tool's XML parser as
   though they were vulnerabilities in the published artifact — 2 of 103 entries were shipped
   dependencies in the measurement behind that default.
+- **kotlinx-benchmark integration**. `kreate { project { benchmark { enabled = true } } }` builds
+    the `benchmarks` source set, associates it with `main` so the benchmarks reach its `internal`
+    declarations and inherit its dependencies, adds `kotlinx-benchmark-runtime`, and applies the
+    `allopen` compiler plugin for `org.openjdk.jmh.annotations.State` — a benchmark class that is
+    final fails inside JMH with a message that never mentions `allopen`. Measurement profiles are
+    configured through `profiles { }` with defaults chosen for reproducibility, including a fixed
+    fork count. Kreate configures the kotlinx-benchmark plugin but does not apply it, and depends
+    on it `compileOnly` so a 0.4.x artifact never reaches a consumer's buildscript classpath;
+    enabling the feature without the plugin fails with an explanation rather than a
+    `NoClassDefFoundError`.
+- **Benchmark regression gate**. `kreateBenchmarkBaseline` records a committed baseline and
+  `kreateBenchmarkCheck` fails the build when a benchmark got measurably slower. The comparison
+  knows that `thrpt` is better when higher and `avgt` better when lower, matches on `@Param`
+  values, refuses to compare scores recorded in a different mode or unit, and treats a benchmark
+  that vanished from the run as a failure — deleting one is otherwise the simplest way to make a
+  regression disappear. A regression counts only when it also exceeds the two measurement errors
+  combined; without that test the gate fires on ordinary run-to-run variance and is switched off
+  within a week. Every run writes a Markdown comparison, passing or failing.
+- **`kreateBenchmarkReport`**. kotlinx-benchmark writes its report to a directory named after
+  the time of the run, which no task can declare as an output: nothing downstream can depend on
+  it, nothing can be up to date against it, and the directory gains an entry per run. This task
+  republishes the newest run at a fixed path, which is what makes the gate an ordinary cacheable
+  task with declared inputs.
+- **A canonical baseline format**. The report JMH writes carries the JVM path, the full argument
+  list and a percentile table. The baseline holds the six fields the comparison reads, so a
+  committed file does not contain one developer's absolute paths and a diff shows the scores.
 
 ### Changed
 
@@ -42,11 +65,12 @@ projects that use it.
   `:example:dependencies --write-locks`, which did not resolve every locked classpath.
 - **The example project uses both new features** instead of the hand-written locking block it
   carried before, and its API dump is checked in CI.
+- **The example project benchmarks itself**, with a deliberately wide threshold: it proves the
+  pipeline is wired up, not that the machine is fast.
+- **A `Benchmark` workflow** runs the gate on a schedule and on demand rather than on every push.
+  Shared runners are too noisy for a per-pull-request gate, and the workflow says so.
 
 ## 2.0.1
-
-A patch release for a single defect: publishing to the GitLab Package Registry never
-uploaded anything.
 
 ### Fixed
 
@@ -77,10 +101,6 @@ uploaded anything.
   the exit code, which is what the original defect required: the old build succeeded.
 
 ## 2.0.0
-
-A release focused on correctness. The JNI pipeline was rebuilt around a set of reproducible
-defects, the plugin gained its first test suite, and several defaults that were hostile to
-enterprise builds were made opt-in.
 
 ### Added
 

@@ -95,6 +95,21 @@ Kreate reacts to the Kotlin plugin you applied rather than guessing at your proj
 - **Drop-in format**: the dump is the one the `binary-compatibility-validator` plugin writes, so
   an existing `api/*.api` file carries over untouched.
 
+### Benchmarks
+
+- **Setup, not boilerplate**: enabling benchmarks builds the `benchmarks` source set, associates
+  it with `main` so it can reach your `internal` declarations, adds the kotlinx-benchmark runtime,
+  and applies the `allopen` compiler plugin JMH needs. Getting that last one wrong produces a JMH
+  error that never mentions `allopen`.
+- **A regression gate**: `kreateBenchmarkBaseline` records a committed baseline;
+  `kreateBenchmarkCheck` runs the benchmarks and fails when one got measurably slower. The
+  comparison knows that `thrpt` is better when higher and `avgt` better when lower, refuses to
+  compare scores recorded in different units, and treats a benchmark that vanished as a failure.
+- **Noise-aware**: a regression counts only when it also exceeds the combined measurement error.
+  Without that, a gate on shared CI hardware fires on ordinary variance and gets switched off.
+- **A report you can depend on**: kotlinx-benchmark writes to a timestamped directory, which no
+  task can declare as an output. Kreate republishes the newest run at a fixed path.
+
 ### Dependency Locking
 
 - **Reproducible resolution**: pins resolved versions in a committed `gradle.lockfile`.
@@ -151,7 +166,8 @@ plugins {
 ```
 
 > **Note**
-> Kreate configures Detekt and the Maven Publish plugin but does not apply them, so their versions
+> Kreate configures Detekt, kotlinx-benchmark and the Maven Publish plugin but does not apply
+> them, so their versions
 > stay under your control. Apply them yourself if you enable those integrations:
 > `id("dev.detekt") version "..."` and `id("com.vanniktech.maven.publish") version "..."`.
 
@@ -212,6 +228,7 @@ kreate {
 ./gradlew kreateBuildConstants      # regenerate build constants
 ./gradlew kreateApiDump             # record the public binary interface
 ./gradlew kreateResolveAndLockAll --write-locks   # write the dependency lock file
+./gradlew kreateBenchmarkCheck      # run benchmarks and compare against the baseline
 ```
 
 ---
@@ -238,6 +255,8 @@ kreate {
 | `project.detekt`                  | `enabled`                  | Static analysis configuration              | `false`      |
 | `project.apiValidation`           | `enabled`                  | Binary compatibility validation            | `false`      |
 | `project.dependencyLocking`       | `enabled`                  | Gradle dependency locking                  | `false`      |
+| `project.benchmark`               | `enabled`                  | kotlinx-benchmark integration              | `false`      |
+| `project.benchmark.regression`    | `maxRegressionPercent`     | Benchmark regression threshold             | `10.0`       |
 | `project.publish`                 | `enabled`                  | Maven Central / GitLab publishing          | `false`      |
 | `trivy`                           | `enabled`                  | Security and compliance scanning           | `false`      |
 

@@ -62,11 +62,11 @@ kreateResolveAndLockAll only makes sense with --write-locks:
 
 ## Properties
 
-| Property                | Type                  | Default                                  | Purpose                                     |
-|-------------------------|-----------------------|------------------------------------------|---------------------------------------------|
-| `enabled`               | `Property<Boolean>`   | `false`                                  | Activates locking and registers the task     |
-| `lockedClasspaths`      | `SetProperty<String>` | `compileClasspath`, `runtimeClasspath`   | The configurations that are locked           |
-| `lockAllConfigurations` | `Property<Boolean>`   | `false`                                  | Locks every configuration instead            |
+| Property                | Type                  | Default                                | Purpose                                  |
+|-------------------------|-----------------------|----------------------------------------|------------------------------------------|
+| `enabled`               | `Property<Boolean>`   | `false`                                | Activates locking and registers the task |
+| `lockedClasspaths`      | `SetProperty<String>` | `compileClasspath`, `runtimeClasspath` | The configurations that are locked       |
+| `lockAllConfigurations` | `Property<Boolean>`   | `false`                                | Locks every configuration instead        |
 
 ## Why not lock everything
 
