@@ -140,7 +140,7 @@ kreate {
             }
 
             regression {
-                maxRegressionPercent = 200.0
+                maxRegressionPercent = 75.0
             }
         }
 

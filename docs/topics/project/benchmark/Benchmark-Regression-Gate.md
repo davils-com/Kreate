@@ -91,6 +91,12 @@ kreate {
 `thresholdOverrides` is how a known-noisy benchmark stays in the suite without loosening the
 gate for everything else.
 
+> In a throughput mode a score cannot fall below zero, so the worst regression that can be
+> expressed is 100%. A threshold at or above that switches the gate off while the build still
+> looks like it passed — Kreate warns when it sees one.
+>
+{style="warning"}
+
 The gate reads JSON. Pointing `profile` at one configured for `csv`, `scsv` or `text` fails
 at configuration time — a gate that waves through a run it cannot parse is worse than an
 error message.

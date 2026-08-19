@@ -261,6 +261,25 @@ class BenchmarkFunctionalTest {
     }
 
     @Test
+    @DisplayName("warns when the threshold can never be reached")
+    fun warnsAboutUnreachableThreshold() {
+        writeBuild(
+            """
+            enabled = true
+            regression {
+                maxRegressionPercent = 150.0
+            }
+            """.trimIndent()
+        )
+
+        val result = fixture.build("tasks")
+
+        // In throughput mode a score cannot drop by more than 100%, so this configuration
+        // switches the gate off while still looking like a passing build.
+        result.output shouldContain "cannot drop by more than"
+    }
+
+    @Test
     @DisplayName("reuses the configuration cache for the gate")
     fun reusesConfigurationCache() {
         writeBuild()

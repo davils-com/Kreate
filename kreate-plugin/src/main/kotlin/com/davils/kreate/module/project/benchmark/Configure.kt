@@ -31,6 +31,7 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.register
 
 private const val MAIN_PROFILE = "main"
+private const val MAX_THROUGHPUT_REGRESSION_PERCENT = 100.0
 private const val JSON_REPORT_FORMAT = "json"
 
 /**
@@ -106,6 +107,7 @@ private fun Project.registerBenchmarkTasks(
 
     val profileName = regression.profile.get()
     verifyGateProfile(extension, profileName)
+    warnOnUnreachableThreshold(extension, profileName, regression.maxRegressionPercent.get())
 
     // Named rather than resolved: kotlinx-benchmark creates this task inside its own
     // `afterEvaluate`, which may run before or after Kreate's depending on the order the
@@ -176,6 +178,38 @@ private fun verifyGateProfile(extension: BenchmarkExtension, profileName: String
                 "passing a run it cannot parse would be worse than failing here."
         )
     }
+}
+
+/**
+ * Warns when the configured threshold can never be reached.
+ *
+ * In a throughput mode the score cannot fall below zero, so the worst regression expressible
+ * is 100%. A larger threshold silently turns the gate off, which looks like a passing build
+ * rather than like a disabled check — the one failure mode a gate must not have.
+ *
+ * @param extension The benchmark configuration.
+ * @param profileName The profile the gate reads.
+ * @param threshold The configured threshold in per cent.
+ * @since 2.2.0
+ */
+private fun Project.warnOnUnreachableThreshold(
+    extension: BenchmarkExtension,
+    profileName: String,
+    threshold: Double
+) {
+    val mode = extension.profiles.findByName(profileName)?.mode?.get()
+    val unreachable = mode != null &&
+        BenchmarkDirection.forMode(mode) == BenchmarkDirection.HIGHER_IS_BETTER &&
+        threshold >= MAX_THROUGHPUT_REGRESSION_PERCENT
+    if (!unreachable) return
+
+    logger.warn(
+        "Kreate's benchmark gate for project '$path' is set to $threshold%, but profile " +
+            "'$profileName' measures '$mode', where a score cannot drop by more than " +
+            "$MAX_THROUGHPUT_REGRESSION_PERCENT%. No regression can reach that threshold, so " +
+            "the gate will never fail. Lower `regression { maxRegressionPercent }`, or set " +
+            "`regression { enabled = false }` if switching it off is what you meant."
+    )
 }
 
 /**
