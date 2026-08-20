@@ -23,6 +23,7 @@ plugins {
     `kotlin-dsl`
     id("kreate.kotlin-conventions")
     id("kreate.quality-conventions")
+    id("kreate.coverage-conventions")
     id("kreate.publish-conventions")
 }
 
