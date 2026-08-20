@@ -33,7 +33,7 @@ plugins {
  * Plugin Portal instead would give it a classloader of its own, which cannot see the Kotlin
  * Gradle plugin TestKit injects, and kotlinx-benchmark fails on `KotlinBasePlugin`.
  */
-val benchmarkTestPlugin: Configuration by configurations.creating {
+val benchmarkTestPlugin: Configuration = configurations.create("benchmarkTestPlugin") {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
