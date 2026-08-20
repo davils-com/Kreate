@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.1.1
+
+### Fixed
+
+- **`kreateApiCheck` failed on Windows for an interface that had not changed**. Git rewrites text
+  files to CRLF when it checks them out on Windows, which is the default on the Windows CI
+  images, while the dump Kreate renders always ends its lines with a line feed. The task compared
+  the two as raw strings, so every Windows run of a project with a checked-in `.api` file failed.
+  The report made the cause hard to see rather than obvious: the diff splits on line boundaries,
+  which treats `\r\n` and `\n` alike, so it found no differing line and printed a bare context
+  count with nothing underneath it. The checked-in file is now read with its line endings
+  normalised, and a real interface change is still reported line by line. The test that pins the
+  dump format to the `binary-compatibility-validator` plugin's output compared the same two
+  values and failed for the same reason; it reads the dump the same way now.
+
 ## 2.1.0
 
 ### Added
