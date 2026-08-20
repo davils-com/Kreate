@@ -1,4 +1,5 @@
 import com.davils.kreate.module.platform.multiplatform.cinterop.NativeLanguage
+import com.davils.kreate.module.project.coverage.Grouping
 import com.davils.kreate.module.trivy.LicenseSeverity
 import com.davils.kreate.module.trivy.SecretSeverity
 import com.davils.kreate.module.trivy.Score
@@ -6,6 +7,7 @@ import java.time.Year
 
 plugins {
     alias(libs.plugins.kreate)
+    alias(libs.plugins.kover)
     id("dev.detekt") version "2.0.0-alpha.6"
     id("org.jetbrains.kotlinx.benchmark") version "0.4.17"
     kotlin("jvm") version "2.4.10"
@@ -21,6 +23,10 @@ group = "com.example"
 detekt {
     config.setFrom(rootProject.file("config/detekt/detekt-consumer.yml"))
     buildUponDefaultConfig = true
+}
+
+dependencies {
+    testImplementation(kotlin("test"))
 }
 
 kreate {
@@ -166,7 +172,7 @@ kreate {
         }
 
         tests {
-            enabled = false
+            enabled = true
             maxParallelForks = Runtime.getRuntime().availableProcessors()
             timeoutMinutes = 10L
             ignoreFailures = false
@@ -212,6 +218,48 @@ kreate {
                     required = true
                     outputLocation = layout.buildDirectory.file("reports/detekt/sarif.sarif")
                 }
+            }
+        }
+
+        coverage {
+            enabled = true
+
+            sources {
+                excludedSourceSets = listOf("benchmarks")
+            }
+
+            filters {
+                excludes {
+                    classes = listOf(
+                        "com.davils.example.ExampleConstants",
+                        "com.example.example.jni.KreateNativeLoader",
+                        "com.davils.example.JNI",
+                        "com.davils.example.JNIKt"
+                    )
+                }
+            }
+
+            reports {
+                xml {
+                    onCheck = false
+                }
+
+                html {
+                    onCheck = false
+                }
+
+                log {
+                    onCheck = false
+                    format = "<entity> line coverage: <value>%"
+                }
+            }
+
+            verify {
+                runOnCheck = true
+                warningInsteadOfFailure = false
+                groupBy = Grouping.APPLICATION
+                minLineCoverage = 60
+                minBranchCoverage = 50
             }
         }
 

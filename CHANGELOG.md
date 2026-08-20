@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.2.0
+
+### Added
+
+- **Code coverage**. `kreate { project { coverage { enabled = true } } }` configures
+  [Kover](https://github.com/Kotlin/kotlinx-kover) — source set selection, instrumentation control,
+  report filters, all four report formats, and a verification gate wired into `check`. It closes the
+  last gap in the quality chain: Detekt says the code looks right and Trivy says it is safe to ship,
+  but nothing said whether the code is ever executed. Kover is configured, not applied, so its
+  version stays with the consumer; enabling the integration without the plugin fails with a message
+  saying what to add rather than silently measuring nothing.
+
+  The verification bounds deliberately have **no defaults**. A threshold picked before the first
+  measurement is either too high, so the first thing anyone does is lower it, or too low, so it can
+  never fail — and a gate that cannot fail is indistinguishable from a working one until the day it
+  should have caught something. An unset bound registers no rule at all rather than a rule demanding
+  zero coverage, and a named rule that declares no bounds is rejected for the same reason.
+- **Named coverage rules**. `coverage { verify { rules { create("...") { ... } } } }` covers what a
+  single minimum percentage cannot: several bounds under one heading, a per-class floor alongside a
+  per-application one, and absolute counts. `maxBound(500, CoverageUnit.LINE,
+  Aggregation.MISSED_COUNT)` caps how much untested code may exist at all — a limit a percentage
+  cannot express, because at a fixed 80% a codebase that doubles in size doubles its untested code
+  while the number on the badge never moves. Rules are named because the name is what the failure
+  message shows.
+- **Coverage aggregation**. `coverage { aggregate { enabled = true } }` merges the coverage of
+  subprojects into one report, so the gate answers for the product rather than for whichever module
+  happens to be best tested. Kover's own `merge { }` applies its plugin to the projects it
+  aggregates; Kreate wires them through the `kover` configuration instead and reports the ones
+  missing the plugin by path, because injecting a plugin into a project whose build script never
+  mentions it is the behaviour this plugin exists to avoid.
+- **Coverage of Kreate's own build**. The new `kreate.coverage-conventions` build-logic plugin
+  measures the plugin itself, with a ratcheted line coverage bound set from a real measurement. That
+  figure understates reality and the documentation says so: the functional suite drives Gradle
+  through TestKit, which runs builds in a separate daemon process, and Kover instruments the test
+  JVM rather than the process it starts.
+
 ## 2.1.1
 
 ### Fixed

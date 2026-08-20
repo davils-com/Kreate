@@ -82,6 +82,14 @@
             <toc-element topic="Benchmark-Configuration.md"/>
             <toc-element topic="Benchmark-Regression-Gate.md"/>
         </toc-element>
+        <toc-element toc-title="Coverage">
+            <toc-element topic="Coverage-Overview.md"/>
+            <toc-element topic="Coverage-Configuration.md"/>
+            <toc-element topic="Coverage-Reports.md"/>
+            <toc-element topic="Coverage-Verification.md"/>
+            <toc-element topic="Coverage-Rules.md"/>
+            <toc-element topic="Coverage-Aggregation.md"/>
+        </toc-element>
         <toc-element toc-title="Publishing">
             <toc-element topic="Publishing-Overview.md"/>
             <toc-element topic="Publishing-Maven-Central.md"/>

@@ -243,6 +243,53 @@ Registered when `project.dependencyLocking.enabled` is `true`. See
 Registered when `project.buildConstant.enabled` is `true`, and wired to run before Kotlin
 compilation so the generated code is always available to your sources.
 
+## Tasks %product% configures but does not register
+
+Some integrations configure someone else's tasks rather than adding their own, because %product%
+configures Detekt and Kover without applying them. These names carry no `kreate` prefix — they
+belong to those plugins, and their contract is theirs.
+
+<table>
+    <tr>
+        <td>Task</td>
+        <td>Registered by</td>
+        <td>Purpose</td>
+    </tr>
+    <tr>
+        <td><code>detekt</code></td>
+        <td><code>dev.detekt</code></td>
+        <td>Static analysis. See <a href="Detekt-Overview.md">Detekt</a>.</td>
+    </tr>
+    <tr>
+        <td><code>koverHtmlReport</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>Browsable coverage report.</td>
+    </tr>
+    <tr>
+        <td><code>koverXmlReport</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>JaCoCo-format XML, for CI and dashboards.</td>
+    </tr>
+    <tr>
+        <td><code>koverLog</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>Prints the coverage summary a CI system parses.</td>
+    </tr>
+    <tr>
+        <td><code>koverBinaryReport</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>Intermediate coverage data for the command line tooling.</td>
+    </tr>
+    <tr>
+        <td><code>koverVerify</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>
+            Fails the build below the configured bounds. Runs as part of <code>check</code>.
+            See <a href="Coverage-Verification.md">Verification</a>.
+        </td>
+    </tr>
+</table>
+
 ## Task groups
 
 Tasks are grouped so that `./gradlew tasks` stays readable.

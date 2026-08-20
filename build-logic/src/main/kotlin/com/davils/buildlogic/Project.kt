@@ -93,6 +93,36 @@ public object Project {
     }
 
     /**
+     * Contains the quality thresholds the build is verified against.
+     *
+     * @since 2.1.0
+     */
+    public object Quality {
+        /**
+         * The minimum percentage of lines the plugin's own test suite has to cover.
+         *
+         * Derived from a measurement rather than chosen as a target: a threshold set before the
+         * first `koverLog` either breaks the build the day coverage is switched on, or sits so
+         * far below the real figure that it can never fail — and a gate that cannot fail reads
+         * like protection without being any.
+         *
+         * This value is a ratchet. Raise it when a change raises the measurement; never lower it
+         * to turn a red build green. It sits a point or so below the current measurement on
+         * purpose: `check` runs on all three platforms of the CI matrix and the native functional
+         * tests do not all take the same paths on each, so a bound pinned to the exact figure
+         * would turn ordinary cross-platform variance into a red build.
+         *
+         * It also understates the real figure. The `functionalTest` suite drives Gradle builds
+         * through TestKit, which run in a separate daemon process, and Kover instruments the
+         * test JVM rather than the process it starts. Plugin code exercised only by TestKit
+         * therefore does not count towards this number.
+         *
+         * @since 2.2.0
+         */
+        public const val MINIMUM_LINE_COVERAGE: Int = 40
+    }
+
+    /**
      * Contains constants related to the organization.
      *
      * @since 1.0.0

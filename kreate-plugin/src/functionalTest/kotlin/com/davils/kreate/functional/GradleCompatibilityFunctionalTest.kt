@@ -72,6 +72,48 @@ class GradleCompatibilityFunctionalTest {
         result.task(":build")?.outcome shouldBe TaskOutcome.SUCCESS
     }
 
+    @ParameterizedTest(name = "measures coverage on Gradle {0}")
+    @MethodSource("supportedGradleVersions")
+    fun coverageWorksOnSupportedVersions(gradleVersion: String) {
+        // The coverage integration configures a third-party plugin whose own supported Gradle
+        // range is documented only loosely. Asserting it here is what turns "Kover probably
+        // works on our declared minimum" into something the build knows.
+        val fixture = KreateBuildFixture(projectDir, gradleVersion)
+        fixture.writeSettings()
+        fixture.writeBuild(
+            kreateBlock = """
+                ${KreateBuildFixture.platformBlock}
+
+                project {
+                    name = "Sample"
+                    description = "Compatibility fixture"
+
+                    coverage {
+                        enabled = true
+
+                        verify {
+                            minLineCoverage = 0
+                        }
+                    }
+                }
+            """.trimIndent(),
+            extraPlugins = listOf("""id("org.jetbrains.kotlinx.kover")""")
+        )
+        fixture.writeKotlin(
+            "com/example/Sample.kt",
+            """
+            package com.example
+
+            class Sample
+            """.trimIndent()
+        )
+
+        val result = fixture.build("koverXmlReport", "koverVerify")
+
+        result.task(":koverXmlReport")?.outcome shouldBe TaskOutcome.SUCCESS
+        result.task(":koverVerify")?.outcome shouldBe TaskOutcome.SUCCESS
+    }
+
     private companion object {
         /**
          * The Gradle versions the plugin is verified against.

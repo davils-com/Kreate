@@ -80,6 +80,7 @@ class PluginContractFunctionalTest {
         // Opt-in features must not clutter a consumer's task list.
         result.output shouldNotContain "kreateJniBuild"
         result.output shouldNotContain "kreateTrivyScan"
+        result.output shouldNotContain "koverXmlReport"
     }
 
     @Test
@@ -182,5 +183,229 @@ class PluginContractFunctionalTest {
         val result = fixture.buildAndFail("build")
 
         result.output shouldContain "dev.detekt"
+    }
+
+    @Test
+    @DisplayName("fails with an actionable message when coverage is enabled without the Kover plugin")
+    fun coverageRequiresItsPlugin() {
+        fixture.writeBuild(
+            """
+            $minimalKreateBlock
+
+            project {
+                coverage {
+                    enabled = true
+                }
+            }
+            """.trimIndent()
+        )
+
+        val result = fixture.buildAndFail("build")
+
+        result.output shouldContain "org.jetbrains.kotlinx.kover"
+    }
+
+    @Test
+    @DisplayName("measures coverage of the code a test actually exercises")
+    fun measuresCoverage() {
+        // The end-to-end proof: instrumentation, execution and reporting all have to line up
+        // for the covered class to appear as covered.
+        fixture.writeKotlin(
+            "com/example/Covered.kt",
+            """
+            package com.example
+
+            class Covered {
+                fun greet(): String = "hello"
+            }
+            """.trimIndent()
+        )
+        fixture.write(
+            "src/test/kotlin/com/example/CoveredTest.kt",
+            """
+            package com.example
+
+            import kotlin.test.Test
+            import kotlin.test.assertEquals
+
+            class CoveredTest {
+                @Test
+                fun greets() {
+                    assertEquals("hello", Covered().greet())
+                }
+            }
+            """.trimIndent()
+        )
+
+        fixture.writeBuild(
+            kreateBlock = """
+                $minimalKreateBlock
+
+                project {
+                    coverage {
+                        enabled = true
+                    }
+                }
+            """.trimIndent(),
+            extraPlugins = listOf("""id("org.jetbrains.kotlinx.kover")"""),
+            extra = """
+                dependencies {
+                    testImplementation(kotlin("test"))
+                }
+
+                tasks.test {
+                    useJUnitPlatform()
+                }
+            """.trimIndent()
+        )
+
+        val result = fixture.build("koverXmlReport")
+
+        result.task(":koverXmlReport")?.outcome shouldBe TaskOutcome.SUCCESS
+
+        val report = fixture.file("build/reports/kover/report.xml").readText()
+        report shouldContain "Covered"
+        // A zero-coverage report would also mention the class, so assert that something was
+        // actually recorded as covered.
+        report shouldContain "covered="
+    }
+
+    @Test
+    @DisplayName("fails the build when coverage is below the configured bound")
+    fun coverageVerificationFailsBelowBound() {
+        // No test exists, so the sample class is at zero percent and the bound cannot be met.
+        fixture.writeBuild(
+            kreateBlock = """
+                $minimalKreateBlock
+
+                project {
+                    coverage {
+                        enabled = true
+
+                        verify {
+                            minLineCoverage = 90
+                        }
+                    }
+                }
+            """.trimIndent(),
+            extraPlugins = listOf("""id("org.jetbrains.kotlinx.kover")""")
+        )
+
+        val result = fixture.buildAndFail("koverVerify")
+
+        result.task(":koverVerify")?.outcome shouldBe TaskOutcome.FAILED
+        result.output shouldContain "Minimum line coverage"
+    }
+
+    @Test
+    @DisplayName("runs the coverage gate as part of check")
+    fun coverageVerificationRunsOnCheck() {
+        // A threshold that has to be invoked by name is one nobody hears about until someone
+        // remembers to look. A bound of zero passes, so this asserts wiring and not the bound.
+        fixture.writeBuild(
+            kreateBlock = """
+                $minimalKreateBlock
+
+                project {
+                    coverage {
+                        enabled = true
+
+                        verify {
+                            minLineCoverage = 0
+                        }
+                    }
+                }
+            """.trimIndent(),
+            extraPlugins = listOf("""id("org.jetbrains.kotlinx.kover")""")
+        )
+
+        val result = fixture.build("check")
+
+        result.task(":koverVerify")?.outcome shouldBe TaskOutcome.SUCCESS
+    }
+
+    @Test
+    @DisplayName("registers no verification rule for a bound that was never set")
+    fun unsetBoundRegistersNoRule() {
+        // The alternative — mapping "unset" onto a minimum of zero — produces a gate that
+        // passes unconditionally and is indistinguishable from a working one.
+        fixture.writeBuild(
+            kreateBlock = """
+                $minimalKreateBlock
+
+                project {
+                    coverage {
+                        enabled = true
+                    }
+                }
+            """.trimIndent(),
+            extraPlugins = listOf("""id("org.jetbrains.kotlinx.kover")""")
+        )
+
+        val result = fixture.build("koverVerify")
+
+        result.task(":koverVerify")?.outcome shouldBe TaskOutcome.SUCCESS
+        result.output shouldNotContain "Minimum line coverage"
+    }
+
+    @Test
+    @DisplayName("enforces a named rule with its own grouping and bounds")
+    fun namedRuleIsEnforced() {
+        // What the shorthand properties cannot express: a rule checked per class rather than
+        // across the application, reported under the name it was given.
+        fixture.writeBuild(
+            kreateBlock = """
+                $minimalKreateBlock
+
+                project {
+                    coverage {
+                        enabled = true
+
+                        verify {
+                            rules {
+                                create("Every class carries its own weight") {
+                                    groupBy = com.davils.kreate.module.project.coverage.Grouping.CLASS
+                                    minBound(80, com.davils.kreate.module.project.coverage.CoverageUnit.LINE)
+                                }
+                            }
+                        }
+                    }
+                }
+            """.trimIndent(),
+            extraPlugins = listOf("""id("org.jetbrains.kotlinx.kover")""")
+        )
+
+        val result = fixture.buildAndFail("koverVerify")
+
+        result.output shouldContain "Every class carries its own weight"
+    }
+
+    @Test
+    @DisplayName("rejects a named rule that declares no bounds")
+    fun ruleWithoutBoundsIsRejected() {
+        // Such a rule always passes. Accepting it would put a green check next to a threshold
+        // that measures nothing.
+        fixture.writeBuild(
+            kreateBlock = """
+                $minimalKreateBlock
+
+                project {
+                    coverage {
+                        enabled = true
+
+                        verify {
+                            rules {
+                                create("Checks nothing")
+                            }
+                        }
+                    }
+                }
+            """.trimIndent(),
+            extraPlugins = listOf("""id("org.jetbrains.kotlinx.kover")""")
+        )
+
+        val result = fixture.buildAndFail("koverVerify")
+
+        result.output shouldContain "declares no bounds"
     }
 }

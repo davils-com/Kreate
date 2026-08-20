@@ -55,11 +55,17 @@ When `enabled` is `true`, Kreate applies the following to every matching test ta
 For Kotlin Multiplatform projects, both `Test` tasks (JVM target) and `KotlinTest` tasks
 (native/JS targets) are configured independently.
 
+## Knowing what the suite actually reaches
+
+A configured, parallel, well-reported test suite can still be green while never entering half the
+codebase. That is a different question from the one this block answers, and
+[coverage](Coverage-Overview.md) is what answers it.
 
 <seealso>
     <category ref="project">
         <a href="Testing-Configuration-Reference.md">Configuration reference</a>
         <a href="Testing-Multiplatfrom.md">Multiplatform testing</a>
         <a href="Testing-Example.md">Examples</a>
+        <a href="Coverage-Overview.md">Coverage</a>
     </category>
 </seealso>

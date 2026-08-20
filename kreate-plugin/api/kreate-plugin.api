@@ -333,6 +333,7 @@ public abstract class com/davils/kreate/module/project/ProjectExtension {
 	public final fun apiValidation (Lorg/gradle/api/Action;)V
 	public final fun benchmark (Lorg/gradle/api/Action;)V
 	public final fun buildConstant (Lorg/gradle/api/Action;)V
+	public final fun coverage (Lorg/gradle/api/Action;)V
 	public final fun dependencyLocking (Lorg/gradle/api/Action;)V
 	public final fun detekt (Lorg/gradle/api/Action;)V
 	public final fun docs (Lorg/gradle/api/Action;)V
@@ -341,6 +342,7 @@ public abstract class com/davils/kreate/module/project/ProjectExtension {
 	public final fun getApplySerializationPlugin ()Lorg/gradle/api/provider/Property;
 	public abstract fun getBenchmark ()Lcom/davils/kreate/module/project/benchmark/extension/BenchmarkExtension;
 	public abstract fun getBuildConstants ()Lcom/davils/kreate/module/project/constants/BuildConstantsExtension;
+	public abstract fun getCoverage ()Lcom/davils/kreate/module/project/coverage/extension/CoverageExtension;
 	public abstract fun getDependencyLocking ()Lcom/davils/kreate/module/project/locking/extension/DependencyLockingExtension;
 	public final fun getDescription ()Lorg/gradle/api/provider/Property;
 	public abstract fun getDetekt ()Lcom/davils/kreate/module/project/detekt/extension/DetektExtension;
@@ -488,6 +490,171 @@ public abstract class com/davils/kreate/module/project/constants/GenerateBuildCo
 	public abstract fun getFile ()Lorg/gradle/api/file/RegularFileProperty;
 	public abstract fun getPackageName ()Lorg/gradle/api/provider/Property;
 	public abstract fun getProperties ()Lorg/gradle/api/provider/MapProperty;
+}
+
+public final class com/davils/kreate/module/project/coverage/Aggregation : java/lang/Enum {
+	public static final field COVERED_COUNT Lcom/davils/kreate/module/project/coverage/Aggregation;
+	public static final field COVERED_PERCENTAGE Lcom/davils/kreate/module/project/coverage/Aggregation;
+	public static final field MISSED_COUNT Lcom/davils/kreate/module/project/coverage/Aggregation;
+	public static final field MISSED_PERCENTAGE Lcom/davils/kreate/module/project/coverage/Aggregation;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/davils/kreate/module/project/coverage/Aggregation;
+	public static fun values ()[Lcom/davils/kreate/module/project/coverage/Aggregation;
+}
+
+public final class com/davils/kreate/module/project/coverage/CoverageUnit : java/lang/Enum {
+	public static final field BRANCH Lcom/davils/kreate/module/project/coverage/CoverageUnit;
+	public static final field INSTRUCTION Lcom/davils/kreate/module/project/coverage/CoverageUnit;
+	public static final field LINE Lcom/davils/kreate/module/project/coverage/CoverageUnit;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/davils/kreate/module/project/coverage/CoverageUnit;
+	public static fun values ()[Lcom/davils/kreate/module/project/coverage/CoverageUnit;
+}
+
+public final class com/davils/kreate/module/project/coverage/Grouping : java/lang/Enum {
+	public static final field APPLICATION Lcom/davils/kreate/module/project/coverage/Grouping;
+	public static final field CLASS Lcom/davils/kreate/module/project/coverage/Grouping;
+	public static final field PACKAGE Lcom/davils/kreate/module/project/coverage/Grouping;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/davils/kreate/module/project/coverage/Grouping;
+	public static fun values ()[Lcom/davils/kreate/module/project/coverage/Grouping;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageAggregateExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
+	public final fun getProjects ()Lorg/gradle/api/provider/ListProperty;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageBinaryReportSpec : com/davils/kreate/module/project/coverage/extension/CoverageReportSpec {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getFile ()Lorg/gradle/api/file/RegularFileProperty;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageBoundSpec {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getAggregation ()Lorg/gradle/api/provider/Property;
+	public final fun getMax ()Lorg/gradle/api/provider/Property;
+	public final fun getMin ()Lorg/gradle/api/provider/Property;
+	public final fun getUnit ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun aggregate (Lorg/gradle/api/Action;)V
+	public final fun filters (Lorg/gradle/api/Action;)V
+	public abstract fun getAggregate ()Lcom/davils/kreate/module/project/coverage/extension/CoverageAggregateExtension;
+	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
+	public abstract fun getFilters ()Lcom/davils/kreate/module/project/coverage/extension/CoverageFilterExtension;
+	public abstract fun getInstrumentation ()Lcom/davils/kreate/module/project/coverage/extension/CoverageInstrumentationExtension;
+	public final fun getJacocoVersion ()Lorg/gradle/api/provider/Property;
+	public abstract fun getReports ()Lcom/davils/kreate/module/project/coverage/extension/CoverageReportExtension;
+	public abstract fun getSources ()Lcom/davils/kreate/module/project/coverage/extension/CoverageSourcesExtension;
+	public final fun getUseJacoco ()Lorg/gradle/api/provider/Property;
+	public abstract fun getVerify ()Lcom/davils/kreate/module/project/coverage/extension/CoverageVerifyExtension;
+	public final fun instrumentation (Lorg/gradle/api/Action;)V
+	public final fun reports (Lorg/gradle/api/Action;)V
+	public final fun sources (Lorg/gradle/api/Action;)V
+	public final fun verify (Lorg/gradle/api/Action;)V
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageFilterExtension {
+	public fun <init> ()V
+	public final fun excludes (Lorg/gradle/api/Action;)V
+	public abstract fun getExcludes ()Lcom/davils/kreate/module/project/coverage/extension/CoverageFilterSpec;
+	public abstract fun getIncludes ()Lcom/davils/kreate/module/project/coverage/extension/CoverageFilterSpec;
+	public final fun includes (Lorg/gradle/api/Action;)V
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageFilterSpec {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getAnnotatedBy ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getClasses ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getInheritedFrom ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getPackages ()Lorg/gradle/api/provider/ListProperty;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageHtmlReportSpec : com/davils/kreate/module/project/coverage/extension/CoverageReportSpec {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;Lorg/gradle/api/Project;)V
+	public final fun getCharset ()Lorg/gradle/api/provider/Property;
+	public final fun getDirectory ()Lorg/gradle/api/file/DirectoryProperty;
+	public final fun getTitle ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageInstrumentationExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getDisabledForAll ()Lorg/gradle/api/provider/Property;
+	public final fun getDisabledForTestTasks ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getExcludedClasses ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getIncludedClasses ()Lorg/gradle/api/provider/ListProperty;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageLogReportSpec : com/davils/kreate/module/project/coverage/extension/CoverageReportSpec {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getAggregation ()Lorg/gradle/api/provider/Property;
+	public final fun getCoverageUnit ()Lorg/gradle/api/provider/Property;
+	public final fun getFormat ()Lorg/gradle/api/provider/Property;
+	public final fun getGroupBy ()Lorg/gradle/api/provider/Property;
+	public final fun getHeader ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageReportExtension {
+	public fun <init> ()V
+	public final fun binary (Lorg/gradle/api/Action;)V
+	public abstract fun getBinary ()Lcom/davils/kreate/module/project/coverage/extension/CoverageBinaryReportSpec;
+	public abstract fun getHtml ()Lcom/davils/kreate/module/project/coverage/extension/CoverageHtmlReportSpec;
+	public abstract fun getLog ()Lcom/davils/kreate/module/project/coverage/extension/CoverageLogReportSpec;
+	public abstract fun getXml ()Lcom/davils/kreate/module/project/coverage/extension/CoverageXmlReportSpec;
+	public final fun html (Lorg/gradle/api/Action;)V
+	public final fun log (Lorg/gradle/api/Action;)V
+	public final fun xml (Lorg/gradle/api/Action;)V
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageReportSpec {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getOnCheck ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageRuleSpec : org/gradle/api/Named {
+	public fun <init> (Ljava/lang/String;Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun bound (Lorg/gradle/api/Action;)V
+	public final fun getBounds ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getDisabled ()Lorg/gradle/api/provider/Property;
+	public final fun getGroupBy ()Lorg/gradle/api/provider/Property;
+	public fun getName ()Ljava/lang/String;
+	public final fun maxBound (I)V
+	public final fun maxBound (ILcom/davils/kreate/module/project/coverage/CoverageUnit;)V
+	public final fun maxBound (ILcom/davils/kreate/module/project/coverage/CoverageUnit;Lcom/davils/kreate/module/project/coverage/Aggregation;)V
+	public static synthetic fun maxBound$default (Lcom/davils/kreate/module/project/coverage/extension/CoverageRuleSpec;ILcom/davils/kreate/module/project/coverage/CoverageUnit;Lcom/davils/kreate/module/project/coverage/Aggregation;ILjava/lang/Object;)V
+	public final fun minBound (I)V
+	public final fun minBound (ILcom/davils/kreate/module/project/coverage/CoverageUnit;)V
+	public final fun minBound (ILcom/davils/kreate/module/project/coverage/CoverageUnit;Lcom/davils/kreate/module/project/coverage/Aggregation;)V
+	public static synthetic fun minBound$default (Lcom/davils/kreate/module/project/coverage/extension/CoverageRuleSpec;ILcom/davils/kreate/module/project/coverage/CoverageUnit;Lcom/davils/kreate/module/project/coverage/Aggregation;ILjava/lang/Object;)V
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageSourcesExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getExcludeJava ()Lorg/gradle/api/provider/Property;
+	public final fun getExcludedSourceSets ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getIncludedSourceSets ()Lorg/gradle/api/provider/ListProperty;
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageVerifyExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getGroupBy ()Lorg/gradle/api/provider/Property;
+	public final fun getMinBranchCoverage ()Lorg/gradle/api/provider/Property;
+	public final fun getMinInstructionCoverage ()Lorg/gradle/api/provider/Property;
+	public final fun getMinLineCoverage ()Lorg/gradle/api/provider/Property;
+	public final fun getRules ()Lorg/gradle/api/NamedDomainObjectContainer;
+	public final fun getRunOnCheck ()Lorg/gradle/api/provider/Property;
+	public final fun getWarningInsteadOfFailure ()Lorg/gradle/api/provider/Property;
+	public final fun rules (Lorg/gradle/api/Action;)V
+}
+
+public abstract class com/davils/kreate/module/project/coverage/extension/CoverageXmlReportSpec : com/davils/kreate/module/project/coverage/extension/CoverageReportSpec {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;Lorg/gradle/api/Project;)V
+	public final fun getFile ()Lorg/gradle/api/file/RegularFileProperty;
+	public final fun getTitle ()Lorg/gradle/api/provider/Property;
 }
 
 public abstract class com/davils/kreate/module/project/detekt/extension/DetektCheckstyleReportSpec : com/davils/kreate/module/project/detekt/extension/DetektReportSpec {

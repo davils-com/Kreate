@@ -1,3 +1,8 @@
+public final class com/davils/example/Greeter {
+	public fun <init> ()V
+	public final fun greet (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class com/davils/example/JNI {
 	public fun <init> ()V
 	public final fun hello ()Ljava/lang/String;
