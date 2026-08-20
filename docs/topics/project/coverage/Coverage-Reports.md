@@ -34,13 +34,13 @@ carry no `kreate` prefix.
 
 ## `xml { }`
 
-### `onCheck`
+### `xml.onCheck`
 - **Type**: `Property<Boolean>` — **Default**: `false`
 
-### `file`
+### `xml.file`
 - **Type**: `RegularFileProperty` — **Default**: `build/reports/kover/report.xml`
 
-### `title`
+### `xml.title`
 - **Type**: `Property<String>` — **Default**: unset
 
 <note>
@@ -51,36 +51,36 @@ step — GitLab consumes it directly as <code>coverage_format: jacoco</code>. Se
 
 ## `html { }`
 
-### `onCheck`
+### `html.onCheck`
 - **Type**: `Property<Boolean>` — **Default**: `false`
 
-### `directory`
+### `html.directory`
 - **Type**: `DirectoryProperty` — **Default**: `build/reports/kover/html`
 
-### `title` / `charset`
+### `html.title` / `html.charset`
 - **Type**: `Property<String>` — **Default**: unset
 
 ## `log { }`
 
-### `onCheck`
+### `log.onCheck`
 - **Type**: `Property<Boolean>` — **Default**: `false`
 
-### `format`
+### `log.format`
 - **Type**: `Property<String>`
 - **Default**: `<entity> line coverage: <value>%`
 - **Description**: `<entity>` and `<value>` are substituted.
 
-### `header`
+### `log.header`
 - **Type**: `Property<String>` — **Default**: unset
 
-### `groupBy`
+### `log.groupBy`
 - **Type**: `Property<Grouping>` — **Default**: `Grouping.APPLICATION`
 - **Description**: One line is printed per entity. `APPLICATION` prints exactly one.
 
-### `coverageUnit`
+### `log.coverageUnit`
 - **Type**: `Property<CoverageUnit>` — **Default**: `CoverageUnit.LINE`
 
-### `aggregation`
+### `log.aggregation`
 - **Type**: `Property<Aggregation>` — **Default**: `Aggregation.COVERED_PERCENTAGE`
 
 <warning>
@@ -94,10 +94,10 @@ lines, and the CI system stores whichever one it matched first.
 
 ## `binary { }`
 
-### `onCheck`
+### `binary.onCheck`
 - **Type**: `Property<Boolean>` — **Default**: `false`
 
-### `file`
+### `binary.file`
 - **Type**: `RegularFileProperty` — **Default**: unset, which uses the engine's own location
 
 ## Example
