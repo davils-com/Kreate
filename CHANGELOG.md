@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`gitlabPackageRegistry()` for resolving dependencies.** GitLab's Maven endpoint rejects the
+  username and password pair Gradle sends by default; it wants a token in a header whose name
+  depends on which kind of token it is, and the wrong combination produces a `401` that explains
+  nothing. The helper assembles the working one: the pipeline's `CI_JOB_TOKEN` as `Job-Token` where
+  it exists, otherwise a personal token from the `gitlabToken` Gradle property or `GITLAB_TOKEN`
+  as `Private-Token` — the property first, so the credential can live in
+  `~/.gradle/gradle.properties` rather than in the repository. Repository name, property and
+  variable names, header and content filtering are all configurable, and it works from a settings
+  file as well as a build script. Nothing about it is specific to any one GitLab instance.
 - **Per-platform publishing for JNI libraries**. `jni { packaging { publishing { } } }` publishes
   the native libraries as one artifact per platform — `com.example:mylib-linux-x64` next to
   `com.example:mylib` — instead of bundling them into the main JAR. A JNI library built on one

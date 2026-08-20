@@ -52,6 +52,7 @@
         <toc-element topic="Project-Metadata.md"/>
         <toc-element topic="Project-Version-Resolution.md"/>
         <toc-element topic="Project-Repositories.md"/>
+        <toc-element topic="Project-Gitlab-Registry.md"/>
         <toc-element toc-title="Build constants">
             <toc-element topic="Constants-Overview.md"/>
             <toc-element topic="Constans-Configuration.md"/>

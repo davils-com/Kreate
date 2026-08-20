@@ -958,3 +958,24 @@ public abstract class com/davils/kreate/module/trivy/tasks/TrivyVulnerabilitySca
 	public abstract fun getSeverity ()Lorg/gradle/api/provider/ListProperty;
 }
 
+public final class com/davils/kreate/repository/GitlabPackageRegistryKt {
+	public static final fun gitlabPackageRegistry (Lorg/gradle/api/artifacts/dsl/RepositoryHandler;Lorg/gradle/api/provider/ProviderFactory;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/repositories/MavenArtifactRepository;
+}
+
+public final class com/davils/kreate/repository/GitlabRegistrySpec {
+	public fun <init> ()V
+	public final fun content (Lorg/gradle/api/Action;)V
+	public final fun getJobTokenVariable ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getTokenHeader ()Ljava/lang/String;
+	public final fun getTokenProperty ()Ljava/lang/String;
+	public final fun getTokenVariable ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public final fun setJobTokenVariable (Ljava/lang/String;)V
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setTokenHeader (Ljava/lang/String;)V
+	public final fun setTokenProperty (Ljava/lang/String;)V
+	public final fun setTokenVariable (Ljava/lang/String;)V
+	public final fun setUrl (Ljava/lang/String;)V
+}
+
