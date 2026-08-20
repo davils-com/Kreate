@@ -20,6 +20,7 @@ import com.davils.kreate.Kreate
 import com.davils.kreate.KreateExtension
 import com.davils.kreate.module.project.coverage.extension.CoverageExtension
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldEndWith
 import kotlinx.kover.gradle.plugin.dsl.AggregationType
 import kotlinx.kover.gradle.plugin.dsl.GroupingEntityType
 import org.gradle.api.Project
@@ -125,10 +126,16 @@ class CoverageExtensionTest {
         @Test
         @DisplayName("reports land where the documentation says they do")
         fun reportLocations() {
+            // `File.path` uses the platform separator, so a literal with forward slashes can
+            // never match on Windows. `invariantSeparatorsPath` normalises it, and
+            // `shouldEndWith` prints the path that was actually produced when it does not match
+            // — `shouldBe true` on a comparison only ever reports "expected true".
             val reports = coverage().reports
 
-            reports.xml.file.get().asFile.path.endsWith("reports/kover/report.xml") shouldBe true
-            reports.html.directory.get().asFile.path.endsWith("reports/kover/html") shouldBe true
+            reports.xml.file.get().asFile.invariantSeparatorsPath shouldEndWith
+                "reports/kover/report.xml"
+            reports.html.directory.get().asFile.invariantSeparatorsPath shouldEndWith
+                "reports/kover/html"
         }
 
         @Test
