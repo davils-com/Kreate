@@ -130,7 +130,9 @@ class NativePublishingFunctionalTest {
             extra = """
                 publishing {
                     repositories {
-                        maven { url = uri("${repositoryDir.invariantSeparatorsPath}") }
+                        // A full file URI rather than a path: on Windows an absolute path like
+                        // `D:/a/...` parses as a URI whose scheme is the drive letter.
+                        maven { url = uri("${repositoryDir.toURI()}") }
                     }
                 }
             """.trimIndent()
