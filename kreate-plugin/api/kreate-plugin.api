@@ -61,6 +61,9 @@ public final class com/davils/kreate/KreateTasks$Jni {
 	public static final field INITIALIZE Ljava/lang/String;
 	public static final field INSTANCE Lcom/davils/kreate/KreateTasks$Jni;
 	public static final field LOADER Ljava/lang/String;
+	public static final field NATIVE_JARS Ljava/lang/String;
+	public static final field VERIFY_PLATFORMS Ljava/lang/String;
+	public final fun nativeJar (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class com/davils/kreate/KreateTasks$Trivy {
@@ -120,7 +123,16 @@ public abstract class com/davils/kreate/module/platform/jvm/jni/JniPackagingExte
 	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
 	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
 	public final fun getGenerateLoader ()Lorg/gradle/api/provider/Property;
+	public abstract fun getPublishing ()Lcom/davils/kreate/module/platform/jvm/jni/JniPublishingExtension;
 	public final fun getResourcePath ()Lorg/gradle/api/provider/Property;
+	public final fun publishing (Lorg/gradle/api/Action;)V
+}
+
+public abstract class com/davils/kreate/module/platform/jvm/jni/JniPublishingExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getEnabled ()Lorg/gradle/api/provider/Property;
+	public final fun getPlatforms ()Lorg/gradle/api/provider/ListProperty;
+	public final fun getStagingDirectory ()Lorg/gradle/api/file/DirectoryProperty;
 }
 
 public abstract class com/davils/kreate/module/platform/jvm/jni/tasks/BuildNative : com/davils/kreate/jobs/Task {
@@ -170,8 +182,10 @@ public abstract class com/davils/kreate/module/platform/jvm/jni/tasks/GenerateNa
 	public static final field LOADER_CLASS_NAME Ljava/lang/String;
 	public fun <init> ()V
 	public final fun execute ()V
+	public abstract fun getArtifactCoordinate ()Lorg/gradle/api/provider/Property;
 	public abstract fun getOutputDirectory ()Lorg/gradle/api/file/DirectoryProperty;
 	public abstract fun getPackageName ()Lorg/gradle/api/provider/Property;
+	public abstract fun getPublishedPlatforms ()Lorg/gradle/api/provider/ListProperty;
 	public abstract fun getResourcePath ()Lorg/gradle/api/provider/Property;
 }
 
@@ -190,6 +204,14 @@ public abstract class com/davils/kreate/module/platform/jvm/jni/tasks/Initialize
 }
 
 public final class com/davils/kreate/module/platform/jvm/jni/tasks/InitializeCppProject$Companion {
+}
+
+public abstract class com/davils/kreate/module/platform/jvm/jni/tasks/VerifyNativePlatforms : com/davils/kreate/jobs/Task {
+	public fun <init> ()V
+	public final fun execute ()V
+	public abstract fun getCandidatePaths ()Lorg/gradle/api/provider/ListProperty;
+	public abstract fun getPlatforms ()Lorg/gradle/api/provider/ListProperty;
+	public abstract fun getSearchedDirectories ()Lorg/gradle/api/file/ConfigurableFileCollection;
 }
 
 public abstract class com/davils/kreate/module/platform/multiplatform/MultiplatformExtension {

@@ -16,6 +16,8 @@
 
 package com.davils.kreate
 
+import com.davils.kreate.system.platformTaskSuffix
+
 /**
  * The names of every task Kreate registers.
  *
@@ -74,10 +76,36 @@ public object KreateTasks {
         public const val LOADER: String = "kreateJniLoader"
 
         /**
+         * Builds the per-platform native JARs that are published alongside the library.
+         * New in 2.2.0.
+         * @since 2.2.0
+         */
+        public const val NATIVE_JARS: String = "kreateJniNativeJars"
+
+        /**
+         * Checks that every selected platform actually has a binary to publish. New in 2.2.0.
+         * @since 2.2.0
+         */
+        public const val VERIFY_PLATFORMS: String = "kreateJniVerifyPlatforms"
+
+        /**
          * The task group for JNI tasks.
          * @since 2.0.0
          */
         public const val GROUP: String = "kreate jni"
+
+        /**
+         * Returns the name of the native JAR task for the given platform.
+         *
+         * Unlike the other names in this object, this one is parameterised: there is one task
+         * per platform a release publishes, and the set is chosen by the consumer.
+         *
+         * @param platformId The platform identifier, for example `linux-x64`.
+         * @return The task name, for example `kreateJniNativeJarLinuxX64`.
+         * @since 2.2.0
+         */
+        public fun nativeJar(platformId: String): String =
+            "kreateJniNativeJar" + platformTaskSuffix(platformId)
     }
 
     /**

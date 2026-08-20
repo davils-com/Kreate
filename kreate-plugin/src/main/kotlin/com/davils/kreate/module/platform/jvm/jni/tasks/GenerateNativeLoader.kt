@@ -18,6 +18,7 @@ package com.davils.kreate.module.platform.jvm.jni.tasks
 
 import com.davils.kreate.jobs.Task
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
@@ -57,6 +58,28 @@ public abstract class GenerateNativeLoader : Task(
      */
     @get:Input
     public abstract val resourcePath: Property<String>
+
+    /**
+     * The coordinate the platform artifacts are published under, without the platform suffix,
+     * for example `com.example:mylib:1.0.0`.
+     *
+     * Empty when the natives are bundled into the main JAR, in which case a missing library is
+     * a build defect rather than a missing declaration and no coordinate would help.
+     *
+     * @since 2.2.0
+     */
+    @get:Input
+    public abstract val artifactCoordinate: Property<String>
+
+    /**
+     * The platforms this version publishes a native artifact for.
+     *
+     * Empty when the natives are bundled into the main JAR.
+     *
+     * @since 2.2.0
+     */
+    @get:Input
+    public abstract val publishedPlatforms: ListProperty<String>
 
     /**
      * The directory the generated source file is written to.
@@ -104,8 +127,47 @@ public abstract class GenerateNativeLoader : Task(
         appendLine()
         append(renderLoadFunction())
         appendLine()
+        append(renderHintFunction())
+        appendLine()
         append(renderPlatformHelpers())
         appendLine("}")
+    }
+
+    /**
+     * Renders the helper that turns a missing library into an actionable message.
+     *
+     * With the natives bundled into the main JAR a missing library is a defect in the library's
+     * own build, and there is nothing useful to tell the consumer. With per-platform artifacts
+     * the overwhelmingly likely cause is a dependency the consumer did not declare — so the
+     * message names the exact coordinate, and lists the platforms this version actually shipped
+     * so that "you forgot the dependency" is distinguishable from "this platform does not exist
+     * for this version".
+     *
+     * @return The rendered function, indented for inclusion in the object body.
+     * @since 2.2.0
+     */
+    private fun renderHintFunction(): String {
+        val coordinate = artifactCoordinate.getOrElse("")
+        val platforms = publishedPlatforms.getOrElse(emptyList())
+
+        if (coordinate.isEmpty()) {
+            return """
+                |    private fun hint(): String = ""
+                |
+            """.trimMargin()
+        }
+
+        val (group, artifactAndVersion) = coordinate.split(':', limit = 2)
+        val (artifact, version) = artifactAndVersion.split(':', limit = 2)
+        val published = platforms.joinToString(", ")
+
+        return """
+            |    private fun hint(): String = "\n\n" +
+            |        "Add the platform artifact to your runtime classpath:\n\n" +
+            |        "    runtimeOnly(\"$group:$artifact-" + platformId() + ":$version\")\n\n" +
+            |        "Platforms published with this version: $published"
+            |
+        """.trimMargin()
     }
 
     /**
@@ -146,7 +208,7 @@ public abstract class GenerateNativeLoader : Task(
         |                loaded.remove(name)
         |                throw UnsatisfiedLinkError(
         |                    "Native library '" + name + "' is not on java.library.path and no " +
-        |                        "packaged copy was found at " + resource + "."
+        |                        "packaged copy was found at " + resource + "." + hint()
         |                )
         |            }
         |

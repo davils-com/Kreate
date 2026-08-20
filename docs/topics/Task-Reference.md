@@ -59,6 +59,30 @@ for how they fit together.
         <td>Package name, resource path</td>
         <td><code>build/generated/jni/kotlin/</code></td>
     </tr>
+    <tr>
+        <td><code>kreateJniVerifyPlatforms</code></td>
+        <td>
+            Fails when a platform selected for publishing has no binary. Registered only with
+            <a href="JNI-Publishing.md">per-platform publishing</a>.
+        </td>
+        <td>Selected platforms, staged and built libraries</td>
+        <td>—</td>
+    </tr>
+    <tr>
+        <td><code>kreateJniNativeJar&lt;Platform&gt;</code></td>
+        <td>
+            Packages one platform's library, for example <code>kreateJniNativeJarLinuxX64</code>.
+            One task per selected platform.
+        </td>
+        <td>Staged or built library for that platform</td>
+        <td><code>build/libs/&lt;name&gt;-&lt;platform&gt;.jar</code></td>
+    </tr>
+    <tr>
+        <td><code>kreateJniNativeJars</code></td>
+        <td>Lifecycle task over every selected platform.</td>
+        <td>—</td>
+        <td>—</td>
+    </tr>
 </table>
 
 <note>

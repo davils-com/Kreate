@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Per-platform publishing for JNI libraries**. `jni { packaging { publishing { } } }` publishes
+  the native libraries as one artifact per platform — `com.example:mylib-linux-x64` next to
+  `com.example:mylib` — instead of bundling them into the main JAR. A JNI library built on one
+  machine can only contain that machine's binary, and the usual answer, a fat JAR assembled from a
+  matrix over every operating system, needs a runner for each of them. Where those do not exist,
+  this publishes what the infrastructure can build and adds platforms later without any consumer
+  having to change anything.
+
+  `platforms` is the selection for a release, not a promise about every version to come, so
+  publishing a subset is an ordinary state rather than a warning. The one thing that fails is
+  selecting a platform with no binary anywhere: `kreateJniVerifyPlatforms` reports it by name,
+  because that gap is always an accident and would otherwise upload cleanly and surface as an
+  `UnsatisfiedLinkError` in a consumer's process. `stagingDirectory` takes binaries built
+  elsewhere, and a staged binary wins over a locally built one for the same platform.
+
+  Enabling it moves the natives out of the main JAR entirely, so no consumer silently receives
+  whichever platform the library happened to be built on. Existing builds are untouched: without
+  the new block, `packaging` behaves exactly as before.
+- **The generated loader names the missing coordinate.** With per-platform artifacts the usual
+  cause of a failed load is a dependency the consumer did not declare, so the message now prints
+  the exact `runtimeOnly(...)` line and lists the platforms that version shipped — which separates
+  "you forgot the dependency" from "this version does not have that platform".
 - **Code coverage**. `kreate { project { coverage { enabled = true } } }` configures
   [Kover](https://github.com/Kotlin/kotlinx-kover) — source set selection, instrumentation control,
   report filters, all four report formats, and a verification gate wired into `check`. It closes the

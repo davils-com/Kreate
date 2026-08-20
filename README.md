@@ -125,6 +125,9 @@ Kreate reacts to the Kotlin plugin you applied rather than guessing at your proj
 - **Automatic scaffolding** of the native project structure for the selected language.
 - **Binding generation**: manages C headers and `.def` files for you.
 - **Multi-architecture**: targets `x86_64`, `aarch64`, and other native triples.
+- **Per-platform publishing**: publish a JNI library as `mylib` plus `mylib-linux-x64`, and ship
+  whichever platforms your infrastructure can actually build. Selecting a subset is a supported
+  release; selecting a platform with no binary fails the build instead of shipping a hole.
 
 ### Security & Compliance
 

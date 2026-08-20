@@ -25,6 +25,7 @@
                 <toc-element topic="JNI-Build-Pipeline.md"/>
                 <toc-element topic="JNI-Headers.md"/>
                 <toc-element topic="JNI-Packaging.md"/>
+                <toc-element topic="JNI-Publishing.md"/>
                 <toc-element topic="JNI-Troubleshooting.md"/>
             </toc-element>
         </toc-element>

@@ -175,12 +175,27 @@ private fun Project.applyNativePackaging(
     if (!packaging.enabled.get()) return
 
     val resourcePath = packaging.resourcePath.get()
+    val publishPerPlatform = packaging.publishing.enabled.get()
 
-    tasks.withType<Jar>().configureEach {
-        dependsOn(buildTaskName)
-        from(libraryDir) {
-            into("$resourcePath/$platformId")
+    // With per-platform publishing the natives leave the main JAR entirely, so that no consumer
+    // silently receives whichever platform the library happened to be built on. They arrive
+    // through the platform artifacts registered below instead.
+    if (!publishPerPlatform) {
+        tasks.withType<Jar>().configureEach {
+            dependsOn(buildTaskName)
+            from(libraryDir) {
+                into("$resourcePath/$platformId")
+            }
         }
+    } else {
+        configureNativePublishing(
+            extension = extension,
+            projectName = projectName,
+            hostLibraryDir = libraryDir,
+            hostPlatformId = platformId,
+            resourcePath = resourcePath,
+            buildTaskName = buildTaskName
+        )
     }
 
     if (!packaging.generateLoader.get()) return
@@ -188,10 +203,24 @@ private fun Project.applyNativePackaging(
     val loaderDir = layout.buildDirectory.dir("generated/jni/kotlin")
     val loaderPackage = resolveLoaderPackageName(extension, projectName)
 
+    // Only meaningful with per-platform publishing: a missing library in a bundled build is a
+    // defect in this project, not a declaration the consumer forgot, and naming a coordinate
+    // would send them down the wrong path.
+    val platformsForHint = if (publishPerPlatform) {
+        resolveSelectedPlatforms(packaging.publishing, platformId)
+    } else {
+        emptyList()
+    }
+    val artifactName = extension.project.name.orNull ?: projectName
+
     val loader = tasks.register<GenerateNativeLoader>(KreateTasks.Jni.LOADER) {
         packageName.set(loaderPackage)
         this.resourcePath.set(resourcePath)
         outputDirectory.set(loaderDir)
+        publishedPlatforms.set(platformsForHint)
+        artifactCoordinate.set(
+            if (publishPerPlatform) "${project.group}:$artifactName:${project.version}" else ""
+        )
     }
 
     addGeneratedSourceDirectory(loaderDir, loader.name)
