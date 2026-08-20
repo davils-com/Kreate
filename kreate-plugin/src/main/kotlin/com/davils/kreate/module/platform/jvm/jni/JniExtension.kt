@@ -253,4 +253,22 @@ public abstract class JniPackagingExtension @Inject constructor(
      * @since 2.0.0
      */
     public val generateLoader: Property<Boolean> = factory.property(Boolean::class.java).convention(true)
+
+    /**
+     * Configuration for publishing the native libraries as separate per-platform artifacts.
+     *
+     * @since 2.2.0
+     */
+    @get:Nested
+    public abstract val publishing: JniPublishingExtension
+
+    /**
+     * Configures the [JniPublishingExtension] using the provided action.
+     *
+     * @param action The configuration action.
+     * @since 2.2.0
+     */
+    public fun publishing(action: Action<JniPublishingExtension>) {
+        action.execute(publishing)
+    }
 }

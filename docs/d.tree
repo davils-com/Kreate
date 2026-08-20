@@ -25,6 +25,7 @@
                 <toc-element topic="JNI-Build-Pipeline.md"/>
                 <toc-element topic="JNI-Headers.md"/>
                 <toc-element topic="JNI-Packaging.md"/>
+                <toc-element topic="JNI-Publishing.md"/>
                 <toc-element topic="JNI-Troubleshooting.md"/>
             </toc-element>
         </toc-element>
@@ -51,6 +52,7 @@
         <toc-element topic="Project-Metadata.md"/>
         <toc-element topic="Project-Version-Resolution.md"/>
         <toc-element topic="Project-Repositories.md"/>
+        <toc-element topic="Project-Gitlab-Registry.md"/>
         <toc-element toc-title="Build constants">
             <toc-element topic="Constants-Overview.md"/>
             <toc-element topic="Constans-Configuration.md"/>
@@ -81,6 +83,14 @@
             <toc-element topic="Benchmark-Overview.md"/>
             <toc-element topic="Benchmark-Configuration.md"/>
             <toc-element topic="Benchmark-Regression-Gate.md"/>
+        </toc-element>
+        <toc-element toc-title="Coverage">
+            <toc-element topic="Coverage-Overview.md"/>
+            <toc-element topic="Coverage-Configuration.md"/>
+            <toc-element topic="Coverage-Reports.md"/>
+            <toc-element topic="Coverage-Verification.md"/>
+            <toc-element topic="Coverage-Rules.md"/>
+            <toc-element topic="Coverage-Aggregation.md"/>
         </toc-element>
         <toc-element toc-title="Publishing">
             <toc-element topic="Publishing-Overview.md"/>

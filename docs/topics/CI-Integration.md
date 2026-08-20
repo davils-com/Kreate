@@ -26,6 +26,12 @@ verifying anything.
     <def title="./gradlew detekt">
         Static analysis, when the <a href="Detekt-Overview.md">integration</a> is enabled.
     </def>
+    <def title="./gradlew koverXmlReport koverLog koverVerify">
+        Coverage measurement, the log line a CI system parses, and the threshold gate, when the
+        <a href="Coverage-Overview.md">coverage integration</a> is enabled. <code>koverVerify</code>
+        already runs as part of <code>check</code>; name it explicitly only when you want the
+        failure reported as its own step.
+    </def>
     <def title="./gradlew kreateJniBuild">
         Included in <code>build</code> transitively, but useful as an explicit step when you want
         the native failure reported separately from the JVM one.
@@ -153,6 +159,21 @@ build:
       - "**/build/reports/"
     expire_in: 1 week
 
+coverage:
+  stage: verify
+  script:
+    - ./gradlew koverXmlReport koverLog koverVerify
+  coverage: '/application line coverage: (\d+\.?\d*)%/'
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: jacoco
+        path: build/reports/kover/report.xml
+    paths:
+      - build/reports/kover/
+    expire_in: 1 week
+
 security:
   stage: verify
   before_script:
@@ -178,6 +199,40 @@ The GitLab publishing integration reads <code>CI_JOB_TOKEN</code>, <code>CI_PROJ
 <code>CI_API_V4_URL</code>, all of which GitLab provides automatically. See
 <a href="Publishing-Gitlab-Registry.md">GitLab Package Registry</a>.
 </note>
+
+### Coverage in merge requests
+
+The `coverage` job above feeds GitLab through two separate channels, and they are easy to confuse
+because only one of them produces the number on the badge.
+
+<deflist type="wide">
+    <def title="The percentage — coverage: keyword">
+        GitLab scans the <b>job log</b> with the regular expression given under
+        <code>coverage:</code> and stores the first match. The line it matches is printed by
+        <code>koverLog</code>, which is why <code>koverLog</code> is in the script and why
+        %product% defaults the log format to
+        <code>&lt;entity&gt; line coverage: &lt;value&gt;%</code>. The format and the expression
+        are one contract: change either and you have to change both.
+    </def>
+    <def title="The annotated diff — artifacts:reports:coverage_report">
+        GitLab renders line-by-line coverage in the merge request diff from the <b>XML report</b>.
+        Kover writes JaCoCo-format XML, which GitLab reads directly as
+        <code>coverage_format: jacoco</code> — no Cobertura conversion step is involved.
+    </def>
+</deflist>
+
+<warning>
+<b><code>when: always</code> is not optional here.</b> The gate is what fails the job, so the
+default (<code>on_success</code>) uploads the report on every run except the one where somebody
+needs it.
+</warning>
+
+<tip>
+Coverage in a merge request is a diff, not an absolute. A change that adds well-tested code to a
+poorly-tested codebase raises the number, and one that deletes dead untested code raises it too —
+neither says anything about the change under review. The annotated diff is what tells you whether
+the lines <i>this</i> change added are covered.
+</tip>
 
 ## Versioning from CI
 

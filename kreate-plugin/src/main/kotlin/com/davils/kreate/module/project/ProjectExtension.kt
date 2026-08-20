@@ -19,6 +19,7 @@ package com.davils.kreate.module.project
 import com.davils.kreate.module.project.api.extension.ApiValidationExtension
 import com.davils.kreate.module.project.benchmark.extension.BenchmarkExtension
 import com.davils.kreate.module.project.constants.BuildConstantsExtension
+import com.davils.kreate.module.project.coverage.extension.CoverageExtension
 import com.davils.kreate.module.project.detekt.extension.DetektExtension
 import com.davils.kreate.module.project.docs.DocsExtension
 import com.davils.kreate.module.project.locking.extension.DependencyLockingExtension
@@ -134,6 +135,14 @@ public abstract class ProjectExtension @Inject constructor(
     public abstract val detekt: DetektExtension
 
     /**
+     * Configuration for code coverage.
+     *
+     * @since 2.1.0
+     */
+    @get:Nested
+    public abstract val coverage: CoverageExtension
+
+    /**
      * Configuration for binary compatibility validation.
      *
      * @since 2.1.0
@@ -152,7 +161,7 @@ public abstract class ProjectExtension @Inject constructor(
     /**
      * Configuration for JMH based benchmarks.
      *
-     * @since 2.2.0
+     * @since 2.1.0
      */
     @get:Nested
     public abstract val benchmark: BenchmarkExtension
@@ -218,6 +227,16 @@ public abstract class ProjectExtension @Inject constructor(
     }
 
     /**
+     * Configures the [CoverageExtension] using the provided action.
+     *
+     * @param action The configuration action.
+     * @since 2.1.0
+     */
+    public fun coverage(action: Action<CoverageExtension>) {
+        action.execute(coverage)
+    }
+
+    /**
      * Configures the [ApiValidationExtension] using the provided action.
      *
      * @param action The configuration action.
@@ -241,7 +260,7 @@ public abstract class ProjectExtension @Inject constructor(
      * Configures the [BenchmarkExtension] using the provided action.
      *
      * @param action The configuration action.
-     * @since 2.2.0
+     * @since 2.1.0
      */
     public fun benchmark(action: Action<BenchmarkExtension>) {
         action.execute(benchmark)

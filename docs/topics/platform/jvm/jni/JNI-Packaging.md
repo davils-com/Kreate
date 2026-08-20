@@ -181,9 +181,17 @@ cannot work. In that environment, ship the library separately and set
 <code>java.library.path</code>, which the loader tries first anyway.
 </tip>
 
+## One JAR holds one platform
+
+Packaging places the library of the machine that ran the build, and only that one. A JAR built on
+Linux works on Linux. That is fine for an application, and not fine for a library you publish —
+see [publishing native libraries](JNI-Publishing.md) for the two ways out and which one fits when
+you cannot build every platform.
+
 <seealso>
     <category ref="native">
         <a href="JNI-Support.md">JNI support</a>
+        <a href="JNI-Publishing.md">Publishing native libraries</a>
         <a href="JNI-Configuration.md">Configuration reference</a>
         <a href="JNI-Troubleshooting.md">Troubleshooting</a>
     </category>

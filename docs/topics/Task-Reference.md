@@ -59,6 +59,30 @@ for how they fit together.
         <td>Package name, resource path</td>
         <td><code>build/generated/jni/kotlin/</code></td>
     </tr>
+    <tr>
+        <td><code>kreateJniVerifyPlatforms</code></td>
+        <td>
+            Fails when a platform selected for publishing has no binary. Registered only with
+            <a href="JNI-Publishing.md">per-platform publishing</a>.
+        </td>
+        <td>Selected platforms, staged and built libraries</td>
+        <td>—</td>
+    </tr>
+    <tr>
+        <td><code>kreateJniNativeJar&lt;Platform&gt;</code></td>
+        <td>
+            Packages one platform's library, for example <code>kreateJniNativeJarLinuxX64</code>.
+            One task per selected platform.
+        </td>
+        <td>Staged or built library for that platform</td>
+        <td><code>build/libs/&lt;name&gt;-&lt;platform&gt;.jar</code></td>
+    </tr>
+    <tr>
+        <td><code>kreateJniNativeJars</code></td>
+        <td>Lifecycle task over every selected platform.</td>
+        <td>—</td>
+        <td>—</td>
+    </tr>
 </table>
 
 <note>
@@ -242,6 +266,53 @@ Registered when `project.dependencyLocking.enabled` is `true`. See
 
 Registered when `project.buildConstant.enabled` is `true`, and wired to run before Kotlin
 compilation so the generated code is always available to your sources.
+
+## Tasks %product% configures but does not register
+
+Some integrations configure someone else's tasks rather than adding their own, because %product%
+configures Detekt and Kover without applying them. These names carry no `kreate` prefix — they
+belong to those plugins, and their contract is theirs.
+
+<table>
+    <tr>
+        <td>Task</td>
+        <td>Registered by</td>
+        <td>Purpose</td>
+    </tr>
+    <tr>
+        <td><code>detekt</code></td>
+        <td><code>dev.detekt</code></td>
+        <td>Static analysis. See <a href="Detekt-Overview.md">Detekt</a>.</td>
+    </tr>
+    <tr>
+        <td><code>koverHtmlReport</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>Browsable coverage report.</td>
+    </tr>
+    <tr>
+        <td><code>koverXmlReport</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>JaCoCo-format XML, for CI and dashboards.</td>
+    </tr>
+    <tr>
+        <td><code>koverLog</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>Prints the coverage summary a CI system parses.</td>
+    </tr>
+    <tr>
+        <td><code>koverBinaryReport</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>Intermediate coverage data for the command line tooling.</td>
+    </tr>
+    <tr>
+        <td><code>koverVerify</code></td>
+        <td><code>org.jetbrains.kotlinx.kover</code></td>
+        <td>
+            Fails the build below the configured bounds. Runs as part of <code>check</code>.
+            See <a href="Coverage-Verification.md">Verification</a>.
+        </td>
+    </tr>
+</table>
 
 ## Task groups
 

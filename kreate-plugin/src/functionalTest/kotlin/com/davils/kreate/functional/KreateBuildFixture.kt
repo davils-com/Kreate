@@ -162,6 +162,22 @@ class KreateBuildFixture(
      */
     fun buildAndFail(vararg arguments: String): BuildResult = runner(arguments.toList()).buildAndFail()
 
+    /**
+     * Runs Gradle with additional environment variables and expects the build to succeed.
+     *
+     * The given entries are merged into the current environment rather than replacing it, because
+     * TestKit hands the map straight to the forked process and a build without `PATH` or
+     * `JAVA_HOME` does not get far.
+     *
+     * @param environment The variables to add or override.
+     * @param arguments The Gradle command line arguments.
+     * @return The build result.
+     */
+    fun buildWithEnvironment(environment: Map<String, String>, vararg arguments: String): BuildResult =
+        runner(arguments.toList())
+            .withEnvironment(System.getenv() + environment)
+            .build()
+
     private fun runner(arguments: List<String>): GradleRunner = GradleRunner.create()
         .withProjectDir(rootDirectory)
         .withPluginClasspath()

@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.2.0
+
+### Added
+
+- **`gitlabPackageRegistry()` for resolving dependencies.** GitLab's Maven endpoint rejects the
+  username and password pair Gradle sends by default; it wants a token in a header whose name
+  depends on which kind of token it is, and the wrong combination produces a `401` that explains
+  nothing. The helper assembles the working one: the pipeline's `CI_JOB_TOKEN` as `Job-Token` where
+  it exists, otherwise a personal token from the `gitlabToken` Gradle property or `GITLAB_TOKEN`
+  as `Private-Token` — the property first, so the credential can live in
+  `~/.gradle/gradle.properties` rather than in the repository. Repository name, property and
+  variable names, header and content filtering are all configurable, and it works from a settings
+  file as well as a build script. Nothing about it is specific to any one GitLab instance.
+- **Per-platform publishing for JNI libraries**. `jni { packaging { publishing { } } }` publishes
+  the native libraries as one artifact per platform — `com.example:mylib-linux-x64` next to
+  `com.example:mylib` — instead of bundling them into the main JAR. A JNI library built on one
+  machine can only contain that machine's binary, and the usual answer, a fat JAR assembled from a
+  matrix over every operating system, needs a runner for each of them. Where those do not exist,
+  this publishes what the infrastructure can build and adds platforms later without any consumer
+  having to change anything.
+
+  `platforms` is the selection for a release, not a promise about every version to come, so
+  publishing a subset is an ordinary state rather than a warning. The one thing that fails is
+  selecting a platform with no binary anywhere: `kreateJniVerifyPlatforms` reports it by name,
+  because that gap is always an accident and would otherwise upload cleanly and surface as an
+  `UnsatisfiedLinkError` in a consumer's process. `stagingDirectory` takes binaries built
+  elsewhere, and a staged binary wins over a locally built one for the same platform.
+
+  Enabling it moves the natives out of the main JAR entirely, so no consumer silently receives
+  whichever platform the library happened to be built on. Existing builds are untouched: without
+  the new block, `packaging` behaves exactly as before.
+- **The generated loader names the missing coordinate.** With per-platform artifacts the usual
+  cause of a failed load is a dependency the consumer did not declare, so the message now prints
+  the exact `runtimeOnly(...)` line and lists the platforms that version shipped — which separates
+  "you forgot the dependency" from "this version does not have that platform".
+- **Code coverage**. `kreate { project { coverage { enabled = true } } }` configures
+  [Kover](https://github.com/Kotlin/kotlinx-kover) — source set selection, instrumentation control,
+  report filters, all four report formats, and a verification gate wired into `check`. It closes the
+  last gap in the quality chain: Detekt says the code looks right and Trivy says it is safe to ship,
+  but nothing said whether the code is ever executed. Kover is configured, not applied, so its
+  version stays with the consumer; enabling the integration without the plugin fails with a message
+  saying what to add rather than silently measuring nothing.
+
+  The verification bounds deliberately have **no defaults**. A threshold picked before the first
+  measurement is either too high, so the first thing anyone does is lower it, or too low, so it can
+  never fail — and a gate that cannot fail is indistinguishable from a working one until the day it
+  should have caught something. An unset bound registers no rule at all rather than a rule demanding
+  zero coverage, and a named rule that declares no bounds is rejected for the same reason.
+- **Named coverage rules**. `coverage { verify { rules { create("...") { ... } } } }` covers what a
+  single minimum percentage cannot: several bounds under one heading, a per-class floor alongside a
+  per-application one, and absolute counts. `maxBound(500, CoverageUnit.LINE,
+  Aggregation.MISSED_COUNT)` caps how much untested code may exist at all — a limit a percentage
+  cannot express, because at a fixed 80% a codebase that doubles in size doubles its untested code
+  while the number on the badge never moves. Rules are named because the name is what the failure
+  message shows.
+- **Coverage aggregation**. `coverage { aggregate { enabled = true } }` merges the coverage of
+  subprojects into one report, so the gate answers for the product rather than for whichever module
+  happens to be best tested. Kover's own `merge { }` applies its plugin to the projects it
+  aggregates; Kreate wires them through the `kover` configuration instead and reports the ones
+  missing the plugin by path, because injecting a plugin into a project whose build script never
+  mentions it is the behaviour this plugin exists to avoid.
+- **Coverage of Kreate's own build**. The new `kreate.coverage-conventions` build-logic plugin
+  measures the plugin itself, with a ratcheted line coverage bound set from a real measurement. That
+  figure understates reality and the documentation says so: the functional suite drives Gradle
+  through TestKit, which runs builds in a separate daemon process, and Kover instruments the test
+  JVM rather than the process it starts.
+
 ## 2.1.1
 
 ### Fixed
@@ -30,7 +97,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   differing lines and the command to regenerate the file. Kreate reads the bytecode itself with
   ASM, so nothing else has to be applied to the consumer's build, and the file format is the one
   the `binary-compatibility-validator` plugin writes — an existing `api/*.api` file carries over
-  unchanged. A test asserts that byte for byte against a dump the plugin produced.
+  unchanged, its line endings normalised on read so a Windows checkout that Git handed out with
+  CRLF does not read as an interface change. A test asserts that byte for byte against a dump
+  the plugin produced.
   Kotlin `internal` declarations are excluded via the class metadata, along with the default
   argument bridges that would otherwise outlive them, and so is compiler plumbing such as
   `access$` accessors and marker-only constructors. Declarations can also be hidden with an

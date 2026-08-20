@@ -125,6 +125,9 @@ Kreate reacts to the Kotlin plugin you applied rather than guessing at your proj
 - **Automatic scaffolding** of the native project structure for the selected language.
 - **Binding generation**: manages C headers and `.def` files for you.
 - **Multi-architecture**: targets `x86_64`, `aarch64`, and other native triples.
+- **Per-platform publishing**: publish a JNI library as `mylib` plus `mylib-linux-x64`, and ship
+  whichever platforms your infrastructure can actually build. Selecting a subset is a supported
+  release; selecting a platform with no binary fails the build instead of shipping a hole.
 
 ### Security & Compliance
 
@@ -138,6 +141,9 @@ Kreate reacts to the Kotlin plugin you applied rather than guessing at your proj
 
 - **Build constants**: generate a type-safe Kotlin object from build values.
 - **Testing**: parallel execution, readable logging, and HTML/XML reports.
+- **Code coverage**: Kover configured from one block — reports, filters, named verification rules
+  and a threshold gate that runs on `check`, plus multi-project aggregation. Ships with no default
+  threshold on purpose: you measure first, then set one.
 - **Documentation**: Dokka configured from the same metadata as your POM.
 - **Publishing**: signed releases to Maven Central and the GitLab Package Registry, with a
   declarative DSL for licences, developers, and SCM information.
@@ -166,10 +172,11 @@ plugins {
 ```
 
 > **Note**
-> Kreate configures Detekt, kotlinx-benchmark and the Maven Publish plugin but does not apply
-> them, so their versions
-> stay under your control. Apply them yourself if you enable those integrations:
-> `id("dev.detekt") version "..."` and `id("com.vanniktech.maven.publish") version "..."`.
+> Kreate configures Detekt, Kover, kotlinx-benchmark and the Maven Publish plugin but does not
+> apply them, so their versions stay under your control. Apply them yourself if you enable those
+> integrations: `id("dev.detekt") version "..."`,
+> `id("org.jetbrains.kotlinx.kover") version "..."` and
+> `id("com.vanniktech.maven.publish") version "..."`.
 
 ### Configuration
 
@@ -253,6 +260,9 @@ kreate {
 | `project.docs`                    | `enabled`                  | Dokka documentation                        | `false`      |
 | `project.tests`                   | `enabled`                  | Test execution and reporting               | `true`       |
 | `project.detekt`                  | `enabled`                  | Static analysis configuration              | `false`      |
+| `project.coverage`                | `enabled`                  | Code coverage through Kover                | `false`      |
+| `project.coverage.verify`         | `minLineCoverage`          | Coverage threshold enforced on `check`     | unset        |
+| `project.coverage.aggregate`      | `enabled`                  | Merge subproject coverage into one report  | `false`      |
 | `project.apiValidation`           | `enabled`                  | Binary compatibility validation            | `false`      |
 | `project.dependencyLocking`       | `enabled`                  | Gradle dependency locking                  | `false`      |
 | `project.benchmark`               | `enabled`                  | kotlinx-benchmark integration              | `false`      |
