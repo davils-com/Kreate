@@ -19,6 +19,7 @@ package com.davils.kreate.module.project.locking
 import com.davils.kreate.KreateExtension
 import com.davils.kreate.KreateTasks
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /**
  * Initializes Gradle dependency locking for the project.
@@ -36,7 +37,7 @@ internal fun Project.initializeDependencyLocking(extension: KreateExtension) {
 
     // Read once, at configuration time: the task action below must not reach back into the
     // extension, or the task would carry a reference to the whole project model.
-    val lockedClasspaths = lockingExtension.lockedClasspaths.get()
+    val lockedClasspaths = lockingExtension.lockedClasspaths.get() + multiplatformClasspaths()
 
     val lockEverything = lockingExtension.lockAllConfigurations.get()
     if (lockEverything) {
@@ -48,6 +49,31 @@ internal fun Project.initializeDependencyLocking(extension: KreateExtension) {
     }
 
     registerResolveAndLockAll(if (lockEverything) null else lockedClasspaths)
+}
+
+/**
+ * The classpaths of every declared Kotlin target, or an empty set for a project that is not
+ * multiplatform.
+ *
+ * The default classpath names are the ones the Kotlin JVM plugin uses. The multiplatform plugin
+ * names a classpath after its target instead - `jvmRuntimeClasspath`, `androidCompileClasspath`,
+ * `wasmJsCompileClasspath` - so on a multiplatform project the default matches nothing, locking
+ * silently applies to no configuration, and any `gradle.lockfile` left in the repository from
+ * before is never rewritten. It still looks like a lock file to a reader and to Trivy.
+ *
+ * Both directions are derived for every target, including the metadata one, whose compile classpath
+ * is `metadataCompileClasspath`. A derived name that turns out not to exist is harmless: locking
+ * matches configurations by name and simply never matches it.
+ *
+ * @return The per-target classpath names to lock in addition to the configured ones.
+ * @since 2.3.0
+ */
+private fun Project.multiplatformClasspaths(): Set<String> {
+    val multiplatform = extensions.findByType(KotlinMultiplatformExtension::class.java) ?: return emptySet()
+
+    return multiplatform.targets.flatMapTo(mutableSetOf()) { target ->
+        listOf("${target.name}CompileClasspath", "${target.name}RuntimeClasspath")
+    }
 }
 
 /**

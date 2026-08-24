@@ -43,6 +43,32 @@ kreate {
 }
 ```
 
+## What `check` runs
+
+Detekt's own plugin makes `check` depend on the aggregate `detekt` task. On a Kotlin JVM project that task reads `src/main/kotlin` and `src/test/kotlin` and the arrangement is correct.
+
+Under the Kotlin Multiplatform plugin it reads nothing at all: every file belongs to a source set, and the aggregate is left with no sources. It then succeeds without analysing a line, which is the worst way for a quality gate to fail - the build stays green and static analysis silently stops happening.
+
+Kreate therefore also points `check` at Detekt's per-source-set tasks:
+
+```
+:detektCommonMainSourceSet
+:detektCommonTestSourceSet
+:detektJvmMainSourceSet
+:detektWasmJsMainSourceSet
+...
+```
+
+One task per source set means every file is analysed exactly once. On a project that has no such tasks - anything using the Kotlin JVM plugin - the set is empty and nothing changes.
+
+<note>
+Detekt also registers a task per <i>compilation</i> (<code>detektMainJvm</code>, <code>detektTestJvm</code>, …). Those run <b>with type resolution</b> and so enable rules the source set tasks cannot evaluate, at the cost of analysing shared source sets once per target. Kreate does not wire them into <code>check</code>: turning them on changes which rules apply, which is a decision about your rule set rather than about where analysis runs. Add them yourself if you want them.
+</note>
+
+## Generated sources are not analysed
+
+Anything under the build directory is left out. Code generators put files on real source sets - KSP writes test launchers there, Kreate's own build constants generator writes a file to `commonMain` - and Detekt would otherwise report formatting findings in code nobody wrote and nobody can fix.
+
 ## Why use Detekt?
 
 Static analysis helps maintain a high-quality codebase by:

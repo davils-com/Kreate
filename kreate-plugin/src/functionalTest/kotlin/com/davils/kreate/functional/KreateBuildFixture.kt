@@ -105,6 +105,61 @@ class KreateBuildFixture(
     }
 
     /**
+     * Writes a build file that applies Kotlin Multiplatform and Kreate with the given configuration.
+     *
+     * Several of Kreate's defaults are named after configurations and tasks the Kotlin JVM plugin
+     * registers, and under the multiplatform plugin those names do not exist. The failure mode is
+     * always the same and always quiet: the build stays green and the thing stops happening. Tests
+     * covering that need a real multiplatform project rather than a JVM one.
+     *
+     * JVM and Wasm, deliberately: two targets are enough for a per-target name to be wrong in a way
+     * one target would hide, and neither needs an SDK the test machine might not have.
+     *
+     * @param kreateBlock The body of the `kreate { }` block.
+     * @param extraPlugins Additional plugin ids applied before Kreate.
+     * @param extra Additional build script content appended after the Kreate block.
+     */
+    fun writeMultiplatformBuild(
+        kreateBlock: String,
+        extraPlugins: List<String> = emptyList(),
+        extra: String = ""
+    ) {
+        val plugins = buildList {
+            add("""id("org.jetbrains.kotlin.multiplatform")""")
+            addAll(extraPlugins)
+            add("""id("com.davils.kreate")""")
+        }.joinToString("\n    ")
+
+        write(
+            "build.gradle.kts",
+            """
+            @file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
+            plugins {
+                $plugins
+            }
+
+            group = "com.example"
+
+            repositories {
+                mavenCentral()
+            }
+
+            kotlin {
+                jvm()
+                wasmJs { nodejs() }
+            }
+
+            kreate {
+                $kreateBlock
+            }
+
+            $extra
+            """.trimIndent()
+        )
+    }
+
+    /**
      * Writes a source file below `src/main/kotlin`.
      *
      * @param relativePath The path below the source root.
@@ -112,6 +167,17 @@ class KreateBuildFixture(
      */
     fun writeKotlin(relativePath: String, content: String) {
         write("src/main/kotlin/$relativePath", content)
+    }
+
+    /**
+     * Writes a source file below a multiplatform source set.
+     *
+     * @param sourceSet The source set name, such as `commonMain`.
+     * @param relativePath The path below the source root.
+     * @param content The file content.
+     */
+    fun writeKotlin(sourceSet: String, relativePath: String, content: String) {
+        write("src/$sourceSet/kotlin/$relativePath", content)
     }
 
     /**

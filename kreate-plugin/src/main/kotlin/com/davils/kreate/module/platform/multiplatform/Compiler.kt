@@ -24,16 +24,25 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 /**
  * Initializes the Kotlin Multiplatform compiler options.
  *
- * This function configures the explicit API mode and warning handling
+ * This function configures the JVM toolchain, the explicit API mode and warning handling
  * based on the `PlatformExtension`.
  *
+ * The toolchain is pinned here for the same reason it is pinned on the Kotlin JVM path. Without it
+ * the JVM and Android targets compile against whichever JDK happens to be running Gradle, while the
+ * published artifact still declares
+ * [com.davils.kreate.module.platform.PlatformExtension.javaVersion]. The result builds on the
+ * developer's machine and fails on a runtime one version older, reported as a missing method rather
+ * than as a build that was never asked to target anything.
+ *
  * @param extension The Kreate configuration extension.
- * @since 1.0.0
+ * @since 2.3.0
  */
 internal fun Project.initMultiplatformCompiler(extension: KreateExtension) {
     val platformConfig = extension.platform
 
     configure<KotlinMultiplatformExtension> {
+        jvmToolchain(platformConfig.javaVersion.get().majorVersion.toInt())
+
         if (platformConfig.explicitApi.get()) {
             explicitApi()
         }
