@@ -46,6 +46,13 @@ public abstract class DependencyLockingExtension @Inject constructor(factory: Ob
      * Defaults to the two classpaths that actually ship: `compileClasspath` and
      * `runtimeClasspath`.
      *
+     * Under the Kotlin Multiplatform plugin neither of those configurations exists - a classpath
+     * is named after its target, `jvmRuntimeClasspath` and `wasmJsCompileClasspath` and so on. The
+     * per-target classpaths are therefore derived from the declared targets and locked in addition
+     * to whatever is named here, so that a multiplatform project is locked without having to
+     * restate its own target list. Naming a configuration that does not exist is harmless; it
+     * simply never matches.
+     *
      * @since 2.1.0
      */
     public val lockedClasspaths: SetProperty<String> = factory.setProperty(String::class.java)

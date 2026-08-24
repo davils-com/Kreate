@@ -19,7 +19,6 @@ package com.davils.kreate.module.platform
 import com.davils.kreate.KreateExtension
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.kotlin.dsl.configure
 
 /**
  * Configures the Java plugin extension for the project.
@@ -27,15 +26,19 @@ import org.gradle.kotlin.dsl.configure
  * This function sets the source and target compatibility based on the
  * [PlatformExtension] configuration.
  *
+ * Does nothing when no Java plugin is applied. A Kotlin Multiplatform project without a JVM or
+ * Android target has no `JavaPluginExtension` at all, and there is nothing to set on it - the JVM
+ * toolchain is pinned on the Kotlin extension instead, which every target arrangement has.
+ * Configuring it unconditionally would fail such a build during evaluation.
+ *
  * @param extension The Kreate configuration extension.
  * @since 1.0.0
  */
 internal fun Project.configureJava(extension: KreateExtension) {
     val platformExtension = extension.platform
+    val java = extensions.findByType(JavaPluginExtension::class.java) ?: return
 
-    configure<JavaPluginExtension> {
-        val javaVersion = platformExtension.javaVersion.get()
-        sourceCompatibility = javaVersion
-        targetCompatibility = javaVersion
-    }
+    val javaVersion = platformExtension.javaVersion.get()
+    java.sourceCompatibility = javaVersion
+    java.targetCompatibility = javaVersion
 }

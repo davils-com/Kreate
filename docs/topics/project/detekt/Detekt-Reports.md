@@ -58,6 +58,24 @@ If `outputLocation` is not specified, Kreate uses the following default location
 | Checkstyle  | `reports/detekt/checkstyle.xml` |
 | Markdown    | `reports/detekt/report.md`      |
 
+## One directory per task
+
+Detekt registers more than one analysis task on most projects, and every one of them writes a report. Kreate puts each task's reports in a directory named after that task, keeping the file name you configured:
+
+```
+build/reports/detekt/detektCommonMainSourceSet/report.md
+build/reports/detekt/detektJvmMainSourceSet/report.md
+build/reports/detekt/detektWasmJsMainSourceSet/report.md
+```
+
+So `outputLocation = layout.buildDirectory.file("reports/detekt/report.md")` decides the file name and the parent directory, and the task name is inserted between them.
+
+<note>
+This matters most on Kotlin Multiplatform, where there is a task per source set and per compilation. Pointing a dozen tasks at one path makes them overlapping task outputs: they overwrite each other in whatever order they happened to run, and the surviving report describes one source set while appearing to describe the project.
+</note>
+
+Collecting reports by extension still works, and CI archiving `**/build/reports/detekt/` picks up all of them. What changes is that a finding can be traced back to the source set it was found in.
+
 ## Advanced Report Customization
 
 By default, Kreate ensures that all reports use the project's root build directory for centralized reporting if possible, or the local project build directory for subprojects. This ensures that you can always find your reports in a consistent location regardless of your project structure.

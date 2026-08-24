@@ -81,6 +81,33 @@ has to triage on every scan.
 
 Lock what you ship. Add a configuration to `lockedClasspaths` when you have a reason to.
 
+## Kotlin Multiplatform
+
+A multiplatform project has no `compileClasspath` and no `runtimeClasspath`. A classpath is named
+after the target it belongs to - `jvmRuntimeClasspath`, `androidCompileClasspath`,
+`wasmJsCompileClasspath`, `metadataCompileClasspath`.
+
+Kreate derives those names from the targets you declared and locks them **in addition** to
+whatever `lockedClasspaths` names, so a multiplatform project needs no configuration of its own:
+
+```kotlin
+kreate {
+    project {
+        dependencyLocking {
+            enabled = true
+        }
+    }
+}
+```
+
+<warning>
+Before this was derived, the default matched no configuration on a multiplatform project. Nothing
+was locked, the build stayed green, and any <code>gradle.lockfile</code> already in the repository
+was never rewritten - it still named <code>compileClasspath</code> and still looked like a lock
+file, to a reader and to Trivy. If you are converting a project to multiplatform, delete the file
+and regenerate it, and check that the classpaths in it are the ones your targets are named after.
+</warning>
+
 ## What drift looks like
 
 A lock is applied as a strict constraint, so declaring a *lower* version than the locked one
