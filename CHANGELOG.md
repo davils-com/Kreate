@@ -5,6 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.3.0
+
+### Fixed
+
+- **The JVM toolchain was not pinned on Kotlin Multiplatform projects.** `platform { javaVersion }`
+  set the toolchain from `initializeJvmCompiler`, which only runs under the Kotlin JVM plugin. A
+  multiplatform build read the property for `sourceCompatibility` and then compiled against
+  whichever JDK happened to be running Gradle, so the artifact declared one Java version and was
+  built against another. Nothing reported it: the build is green on a machine whose JDK is new
+  enough, and the first symptom is a consumer on the declared version hitting a `NoSuchMethodError`
+  for something the newer JDK had. `Thread.getId()` against `Thread.threadId()` is the shape of it —
+  deprecated on 21, absent on 17, and neither fact visible from the build that produced the class
+  file. The multiplatform path now pins the toolchain exactly as the JVM path does.
+- **`javaVersion` failed a multiplatform project that has no JVM or Android target.** The Java
+  compatibility settings were applied with `configure<JavaPluginExtension>`, which throws when no
+  Java plugin is applied — and nothing applies one for a project targeting only native or Wasm. The
+  extension is now configured when it exists and skipped when it does not; the toolchain is pinned
+  on the Kotlin extension either way, which every target arrangement has.
+- **Dependency locking locked nothing on Kotlin Multiplatform projects.** `lockedClasspaths`
+  defaults to `compileClasspath` and `runtimeClasspath`, and the multiplatform plugin registers
+  neither: a classpath is named after its target, `jvmRuntimeClasspath` and `wasmJsCompileClasspath`
+  and so on. Locking matched no configuration, `kreateResolveAndLockAll` resolved nothing, and any
+  `gradle.lockfile` already in the repository was never rewritten — so it kept naming
+  `compileClasspath` and kept looking like a lock file, to a reader and to the Trivy scan that reads
+  it. The per-target names are now derived from the declared targets and locked in addition to
+  whatever `lockedClasspaths` names, so a multiplatform project needs no configuration of its own. A
+  derived name that turns out not to exist is harmless; locking matches by name and never matches
+  it.
+
+  **If you are converting a project to multiplatform, delete `gradle.lockfile` and regenerate it**,
+  then check that the classpaths in it are the ones your targets are named after. The stale file is
+  not overwritten by anything that would tell you it was wrong.
+- **`check` analysed nothing on Kotlin Multiplatform projects.** Detekt's plugin points `check` at
+  the aggregate `detekt` task. Under the Kotlin JVM plugin that task reads `src/main/kotlin` and
+  `src/test/kotlin` and the arrangement is correct; under the multiplatform plugin every file
+  belongs to a source set and the aggregate is left with no sources at all. It then succeeded
+  without reading a line, which is the worst way for a quality gate to fail: static analysis stops
+  happening and the build stays green. Kreate now also points `check` at Detekt's per-source-set
+  tasks, one per source set, so every file is analysed exactly once. On a project that has no such
+  tasks the set is empty and nothing changes.
+
+  The per-*compilation* tasks — `detektMainJvm` and the rest — are deliberately not wired in. They
+  run with type resolution and so enable rules the source set tasks cannot evaluate, which is a
+  decision about your rule set rather than about where analysis runs, and they overlap: `commonMain`
+  belongs to every target's main compilation. Add them yourself if you want them.
+- **Detekt reported findings in generated code.** Anything a generator writes below the build
+  directory still lands on a real source set — KSP puts test launchers there, and Kreate's own build
+  constants generator writes a file to `commonMain`. Detekt read them and reported line length and
+  trailing whitespace in code nobody wrote and nobody can fix; one KSP-generated test launcher was
+  worth a hundred findings on its own. The build directory is now excluded from every Detekt task.
+
+### Changed
+
+- **Each Detekt task writes its reports into a directory named after itself.** The configured
+  `outputLocation` decides the file name and the parent directory, and the task name is inserted
+  between them, so `reports/detekt/report.md` becomes
+  `reports/detekt/detektJvmMainSourceSet/report.md`.
+
+  One shared path was accurate while there was one task to use it. A multiplatform project has a
+  dozen, and pointing all of them at one file makes them overlapping task outputs: they overwrite
+  each other in whatever order they happened to run, and the surviving report describes one source
+  set while appearing to describe the project. Collecting reports by extension still works and CI
+  archiving `**/build/reports/detekt/` still picks up all of them; what changes is that a finding
+  can be traced back to the source set it was found in.
+
 ## 2.2.0
 
 ### Added
