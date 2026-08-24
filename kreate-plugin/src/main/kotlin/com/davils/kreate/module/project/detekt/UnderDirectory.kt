@@ -40,8 +40,4 @@ internal class UnderDirectory(private val root: String) : Spec<FileTreeElement>,
      */
     override fun isSatisfiedBy(element: FileTreeElement): Boolean =
         element.file.absolutePath.startsWith(root)
-
-    private companion object {
-        private const val serialVersionUID: Long = 1L
-    }
 }
