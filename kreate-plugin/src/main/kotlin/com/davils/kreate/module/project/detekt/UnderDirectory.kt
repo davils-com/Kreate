@@ -18,18 +18,17 @@ package com.davils.kreate.module.project.detekt
 
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.specs.Spec
-import java.io.Serializable
 
 /**
  * Matches every file underneath a directory, compared by absolute path.
  *
- * A named class rather than a lambda because it is stored on a task and therefore has to survive
- * the configuration cache. A lambda declared in a plugin would capture its enclosing scope, and
- * Gradle refuses to serialize that.
+ * A named class rather than a lambda because it ends up stored on a task and has to survive the
+ * configuration cache. A lambda written inside a plugin captures its enclosing scope, and Gradle
+ * refuses to serialize that. This holds one string, which Gradle's own bean serializer handles.
  *
  * @since 2.3.0
  */
-internal class UnderDirectory(private val root: String) : Spec<FileTreeElement>, Serializable {
+internal class UnderDirectory(private val root: String) : Spec<FileTreeElement> {
 
     /**
      * Whether the given element lies underneath the configured directory.
