@@ -111,14 +111,12 @@ private fun Project.registerResolveAndLockAll(lockedClasspaths: Set<String>?) {
         }
 
         doLast {
-            // Locking records only what a build actually resolves, so locking every
-            // configuration and resolving two of them writes a lock file that looks
-            // complete and is not.
             val locked = project.configurations.filter { configuration ->
                 configuration.isCanBeResolved &&
                     (lockedClasspaths == null || configuration.name in lockedClasspaths)
             }
-            locked.forEach { configuration -> configuration.resolve() }
+
+            locked.forEach { configuration -> configuration.incoming.resolutionResult.root }
             logger.lifecycle(
                 "Resolved ${locked.size} locked configuration(s): ${locked.joinToString { it.name }}"
             )

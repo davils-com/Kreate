@@ -45,6 +45,14 @@ an arbitrary task and you get a lock file that covers whatever that task happene
 one that looks complete and is not. `kreateResolveAndLockAll` resolves every locked
 classpath in a single invocation, so the file is whole.
 
+What it resolves is the dependency graph, not the artifacts. A lock file records module
+versions, and those are settled the moment the graph resolves; picking a file for each of
+them is a second step that locking never looks at. That distinction matters on a classpath
+where artifact selection is ambiguous — an Android classpath consuming another project in
+the same build is the common case, because the Android library plugin publishes several
+artifact variants under one set of attributes. The versions are never in question there,
+and the task no longer pretends they are.
+
 The task refuses to run without `--write-locks`, because resolving classpaths for no reason
 is the only thing it would otherwise do:
 
