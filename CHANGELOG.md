@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.3.1
+
+### Fixed
+
+- **`kreateResolveAndLockAll` failed on an Android classpath that consumes another project.** The
+  task asked each locked configuration for its files. A lock file records module versions, which
+  are settled when the dependency graph resolves; choosing an artifact for each of them is a second
+  step locking never looks at. Asking for it anyway made the task fail wherever artifact selection
+  is ambiguous — `androidCompileClasspath` reaching another project in the same build, because the
+  Android library plugin publishes several artifact variants under one set of attributes and a
+  request naming no `artifactType` cannot choose between them. The Android plugin resolves such a
+  classpath through an artifact view for exactly that reason. The task now resolves the graph and
+  nothing more, which is both what locking records and what every classpath can answer.
+
+  A single-module Android project never hit this: the ambiguity needs a `project(...)` dependency
+  on the Android classpath. A multi-module Kotlin Multiplatform build with an Android target hits
+  it on the first run, and `verify:lockfiles` in the shared Kotlin pipeline runs that exact command
+  on every pipeline.
+
 ## 2.3.0
 
 ### Fixed

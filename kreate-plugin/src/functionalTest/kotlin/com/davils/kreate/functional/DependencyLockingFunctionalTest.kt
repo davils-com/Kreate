@@ -161,6 +161,82 @@ class DependencyLockingFunctionalTest {
     }
 
     @Test
+    @DisplayName("locks a classpath whose artifacts cannot be chosen between")
+    fun locksClasspathWithAmbiguousArtifacts() {
+        // The shape the Android library plugin publishes, reduced to the part that matters: one
+        // consumable configuration carrying several artifact variants under the same attributes.
+        // A request that names no `artifactType` cannot choose between them, so asking for the
+        // files fails - while the graph, which is all a lock file records, resolves perfectly.
+        // `androidCompileClasspath` consuming another project in the same build is the real case;
+        // reproducing it this way needs no SDK, and what is under test is the resolution.
+        fixture.write(
+            "settings.gradle.kts",
+            """
+            dependencyResolutionManagement {
+                repositories {
+                    mavenCentral()
+                    gradlePluginPortal()
+                }
+            }
+
+            rootProject.name = "sample"
+
+            include(":producer")
+            """.trimIndent()
+        )
+        fixture.write(
+            "producer/build.gradle.kts",
+            """
+            group = "com.example"
+
+            configurations.consumable("shared") {
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "shared"))
+                }
+                outgoing.variants.create("first") {
+                    artifact(layout.projectDirectory.file("first.txt")) { type = "first" }
+                }
+                outgoing.variants.create("second") {
+                    artifact(layout.projectDirectory.file("second.txt")) { type = "second" }
+                }
+            }
+            """.trimIndent()
+        )
+        fixture.write("producer/first.txt", "first")
+        fixture.write("producer/second.txt", "second")
+
+        writeBuild(
+            """
+            enabled = true
+            lockedClasspaths = setOf("consumer")
+            """.trimIndent()
+        )
+        fixture.write(
+            "build.gradle.kts",
+            fixture.file("build.gradle.kts").readText() + """
+
+            val consumerDependencies = configurations.dependencyScope("consumerDependencies")
+
+            configurations.resolvable("consumer") {
+                extendsFrom(consumerDependencies.get())
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "shared"))
+                }
+            }
+
+            dependencies {
+                add("consumerDependencies", project(":producer"))
+            }
+            """.trimIndent()
+        )
+
+        val result = fixture.build("kreateResolveAndLockAll", "--write-locks")
+
+        result.task(":kreateResolveAndLockAll")?.outcome shouldBe TaskOutcome.SUCCESS
+        lockFile.readText() shouldContain "consumer"
+    }
+
+    @Test
     @DisplayName("registers no task while the feature is disabled")
     fun registersNothingWhenDisabled() {
         writeBuild("enabled = false")

@@ -21,7 +21,10 @@ plugins {
     signing
 }
 
-version = System.getenv("CI_COMMIT_TAG")?.removePrefix("v") ?: "2.2.0-SNAPSHOT"
+// The tag when CI publishes a release, and otherwise whatever `gradle.properties` says. The
+// fallback used to be a literal, which went stale the moment a release was tagged and left the
+// two places that name a version disagreeing.
+System.getenv("CI_COMMIT_TAG")?.removePrefix("v")?.let { tagged -> version = tagged }
 group = Project.Identity.GROUP
 
 mavenPublishing {
