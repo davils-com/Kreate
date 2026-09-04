@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.kreate)
     alias(libs.plugins.kover)
     id("dev.detekt") version "2.0.0-alpha.6"
-    id("org.jetbrains.kotlinx.benchmark") version "0.4.17"
+    id("org.jetbrains.kotlinx.benchmark") version "0.5.0"
     kotlin("jvm") version "2.4.10"
     application
 }
